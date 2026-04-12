@@ -5,6 +5,6 @@
   "config_flow": true,
   "documentation": "https://github.com/dreuter/hass-eink",
   "iot_class": "local_polling",
-  "requirements": ["Pillow>=10.0.0", "numpy>=1.24.0"],
+  "requirements": ["Pillow>=10.0.0", "hitherdither @ git+https://github.com/hbldh/hitherdither"],
   "version": "0.1.0"
 }
