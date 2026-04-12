@@ -6,10 +6,9 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 from homeassistant.core import HomeAssistant
-from ..const import BLACK, WHITE, RED, BLUE
+from ..const import BLACK, WHITE, RED, BLUE, GREEN, YELLOW
 
 def _draw_gray_line(draw, x0: int, y: int, x1: int) -> None:
-    """Draw a horizontal line using alternating black/white pixels to simulate gray."""
     for x in range(x0, x1):
         if (x + y) % 2 == 0:
             draw.point((x, y), fill=BLACK)
@@ -18,6 +17,17 @@ _FONTS_DIR = Path(__file__).parent.parent / "fonts"
 _FONT = _FONTS_DIR / "DejaVuSans.ttf"
 _FONT_BOLD = _FONTS_DIR / "DejaVuSans-Bold.ttf"
 _ICONS_DIR = Path(__file__).parent.parent / "icons"
+
+# Named palette colors for calendar config
+_COLOR_MAP = {
+    "black":  BLACK,
+    "white":  WHITE,
+    "yellow": YELLOW,
+    "red":    RED,
+    "blue":   BLUE,
+    "green":  GREEN,
+}
+_DEFAULT_COLORS = [BLACK, BLUE, GREEN, RED, YELLOW]
 
 
 def _load_icon(condition: str, size: int) -> Image.Image | None:
@@ -34,8 +44,21 @@ def _fonts(size: int):
     )
 
 
+async def _get_events(hass: HomeAssistant, entity_id: str, day_start: datetime, day_end: datetime) -> list[dict]:
+    try:
+        result = await hass.services.async_call(
+            "calendar", "get_events",
+            {"entity_id": entity_id,
+             "start_date_time": day_start.isoformat(),
+             "end_date_time": day_end.isoformat()},
+            blocking=True, return_response=True,
+        )
+        return (result or {}).get(entity_id, {}).get("events", [])
+    except Exception:
+        return []
+
+
 async def _get_forecast(hass: HomeAssistant, entity_id: str, start_hour: int, end_hour: int) -> dict[int, dict]:
-    """Return {hour: forecast_entry} for today's hours in range."""
     try:
         result = await hass.services.async_call(
             "weather", "get_forecasts",
@@ -66,7 +89,6 @@ async def render_calendar(
     cfg: dict,
     dither: str = "none",
 ) -> None:
-    entity_id = cfg.get("entity_id", "calendar.home")
     start_hour = int(cfg.get("start_hour") or 0)
     end_hour = int(cfg.get("end_hour") or 24)
     forecast_entity = cfg.get("forecast_entity")
@@ -75,40 +97,46 @@ async def render_calendar(
 
     font_sm, font_bold = _fonts(max(9, h // 20))
 
-    # Fetch events
+    # Resolve calendar list — support legacy single entity_id
+    calendars_cfg = cfg.get("calendars")
+    if not calendars_cfg:
+        entity_id = cfg.get("entity_id", "calendar.home")
+        calendars_cfg = [{"entity_id": entity_id}]
+
+    # Assign colors
+    calendars = []
+    for i, cal in enumerate(calendars_cfg):
+        if not cal.get("entity_id"):
+            continue
+        color_name = cal.get("color")
+        color = _COLOR_MAP.get(color_name) if color_name else _DEFAULT_COLORS[i % len(_DEFAULT_COLORS)]
+        calendars.append((cal["entity_id"], color))
+
     local_now = datetime.now().astimezone()
     day_start = local_now.replace(hour=0, minute=0, second=0, microsecond=0)
     day_end = day_start + timedelta(days=1)
 
-    try:
-        result = await hass.services.async_call(
-            "calendar", "get_events",
-            {
-                "entity_id": entity_id,
-                "start_date_time": day_start.isoformat(),
-                "end_date_time": day_end.isoformat(),
-            },
-            blocking=True, return_response=True,
-        )
-        events = (result or {}).get(entity_id, {}).get("events", [])
-    except Exception:
+    # Fetch all events
+    all_events: list[tuple[dict, tuple]] = []
+    for entity_id, color in calendars:
+        for event in await _get_events(hass, entity_id, day_start, day_end):
+            all_events.append((event, color))
+
+    if not all_events and not calendars:
         draw.text((x0 + 4, y0 + 4), "Calendar error", fill=RED, font=font_sm)
         return
 
-    # Fetch forecast if configured
     forecast = await _get_forecast(hass, forecast_entity, start_hour, end_hour) if forecast_entity else {}
 
-    # All-day banner
-    all_day = [e for e in events if "T" not in e.get("start", "")]
-    timed   = [e for e in events if "T" in e.get("start", "")]
+    all_day = [(e, c) for e, c in all_events if "T" not in e.get("start", "")]
+    timed   = [(e, c) for e, c in all_events if "T" in e.get("start", "")]
 
     banner_h = (font_sm.size + 4) * len(all_day) if all_day else 0
     if all_day:
         draw.rectangle((x0, y0, x1 - 1, y0 + banner_h), fill=BLACK)
-        for i, e in enumerate(all_day):
+        for i, (e, c) in enumerate(all_day):
             draw.text((x0 + 4, y0 + i * (font_sm.size + 4) + 2), e.get("summary", ""), font=font_sm, fill=WHITE)
 
-    # Timeline
     tl_y0 = y0 + banner_h
     tl_h = y1 - tl_y0
     hour_range = end_hour - start_hour
@@ -120,7 +148,6 @@ async def render_calendar(
     def time_to_y(hour: float) -> int:
         return int(tl_y0 + (hour - start_hour) / hour_range * tl_h)
 
-    # Hour lines + labels + forecast
     for hr in range(start_hour, end_hour + 1):
         y = time_to_y(hr)
         _draw_gray_line(draw, x0 + label_w, y, x1 - 1)
@@ -133,7 +160,7 @@ async def render_calendar(
                 temp = f.get("temperature")
                 precip = f.get("precipitation") or 0
                 icon_size = font_sm.size + 2
-                col_x = x0 + label_w  # left edge of forecast column
+                col_x = x0 + label_w
                 fy = y + 1
                 icon = await hass.async_add_executor_job(_load_icon, condition, icon_size)
                 if icon:
@@ -151,24 +178,38 @@ async def render_calendar(
                 if precip > 0:
                     draw.text((tx, fy + font_sm.size + 1), f"{precip:.1f}mm", font=font_sm, fill=BLUE)
 
-    # Event bubbles
-    for event in timed:
+    # Build list of (sh, eh, event, color) and assign columns for overlaps
+    slots = []
+    for event, color in timed:
         try:
             ev_start = datetime.fromisoformat(event["start"]).astimezone()
             ev_end   = datetime.fromisoformat(event.get("end", event["start"])).astimezone()
         except (KeyError, ValueError):
             continue
-
         sh = max(ev_start.hour + ev_start.minute / 60, start_hour)
         eh = min(ev_end.hour + ev_end.minute / 60, end_hour)
         if sh >= eh:
             continue
+        slots.append([sh, eh, event, color, ev_start, 0, 1])  # col, total_cols appended below
 
+    # Assign columns: greedy interval graph coloring
+    for i, s in enumerate(slots):
+        used = {s2[5] for s2 in slots[:i] if s2[0] < s[1] and s2[1] > s[0]}
+        s[5] = next(c for c in range(len(slots)) if c not in used)
+    for i, s in enumerate(slots):
+        s[6] = max(s2[5] + 1 for s2 in slots if s2[0] < s[1] and s2[1] > s[0])
+
+    total_w = event_x1 - event_x0
+    for sh, eh, event, color, ev_start, col, total_cols in slots:
+        col_w = total_w // total_cols
+        ex0 = event_x0 + col * col_w
+        ex1 = event_x0 + (col + 1) * col_w - 1
         ey0 = time_to_y(sh) + 1
         ey1 = max(time_to_y(eh) - 1, ey0 + font_sm.size + 2)
-        draw.rounded_rectangle((event_x0, ey0, event_x1, ey1), radius=2, fill=BLACK)
+        draw.rounded_rectangle((ex0, ey0, ex1, ey1), radius=2, fill=color)
+        text_color = BLACK if color in (WHITE, YELLOW) else WHITE
         draw.text(
-            (event_x0 + 2, ey0 + 1),
+            (ex0 + 2, ey0 + 1),
             f"{ev_start.strftime('%H:%M')} {event.get('summary', '')}",
-            font=font_sm, fill=WHITE,
+            font=font_sm, fill=text_color,
         )

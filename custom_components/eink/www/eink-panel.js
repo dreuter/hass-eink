@@ -4,16 +4,17 @@
 const GRID_ROWS = 3;
 const GRID_COLS = 4;
 const WIDGET_TYPES = ["weather", "calendar", "image"];
+const PALETTE_COLORS = ["black", "white", "yellow", "red", "blue", "green"];
+const PALETTE_HEX = { black: "#000", white: "#fff", yellow: "#ff0", red: "#f00", blue: "#00f", green: "#0f0" };
 
 const WIDGET_FIELDS = {
   weather:  [{ key: "entity_id", label: "Weather entity", placeholder: "weather.forecast_home", domain: "weather" }],
   calendar: [
-    { key: "entity_id",       label: "Calendar entity",        placeholder: "calendar.home", domain: "calendar" },
-    { key: "forecast_entity", label: "Weather forecast (opt)", placeholder: "",              domain: "weather" },
+    { key: "forecast_entity", label: "Weather forecast (opt)", placeholder: "", domain: "weather" },
     { key: "start_hour",      label: "Start hour (0–24)",      placeholder: "0" },
     { key: "end_hour",        label: "End hour (0–24)",        placeholder: "24" },
   ],
-  image: [], // handled separately via media browser
+  image: [],
 };
 
 const css = `
@@ -37,6 +38,10 @@ const css = `
   .field { margin-bottom: 10px; }
   .field label { display: block; font-size: 0.8em; color: #555; margin-bottom: 3px; }
   .field input, .field select { width: 100%; box-sizing: border-box; padding: 6px 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.9em; }
+  .cal-row { display: flex; gap: 4px; align-items: center; margin-bottom: 4px; }
+  .cal-row select { flex: 1; }
+  .cal-row .color-dot { width: 16px; height: 16px; border-radius: 50%; border: 1px solid #aaa; flex-shrink: 0; }
+  .cal-row button { padding: 2px 6px; font-size: 0.8em; }
   .span-row { display: flex; gap: 8px; }
   .span-row .field { flex: 1; }
   .empty-hint { color: #999; font-size: 0.85em; padding: 8px; }
@@ -423,6 +428,27 @@ class EinkPanel extends HTMLElement {
                 placeholder="${f.placeholder}" value="${currentVal}">
             </div>`;
         }).join("")}
+        ${w.type === "calendar" ? (() => {
+          const calEntities = Object.keys(this._hass.states).filter(id => id.startsWith("calendar."));
+          const cals = w.config?.calendars || (w.config?.entity_id ? [{entity_id: w.config.entity_id}] : [{}]);
+          return `<div class="field">
+            <label>Calendars</label>
+            <div id="cal-list">
+              ${cals.map((c, i) => `
+                <div class="cal-row" data-i="${i}">
+                  <select class="cal-entity">
+                    ${calEntities.map(e => `<option value="${e}" ${e === c.entity_id ? "selected" : ""}>${e}</option>`).join("")}
+                  </select>
+                  <select class="cal-color">
+                    ${PALETTE_COLORS.map(col => `<option value="${col}" ${col === (c.color || "") ? "selected" : ""}>${col}</option>`).join("")}
+                  </select>
+                  <span class="color-dot" style="background:${PALETTE_HEX[c.color || "black"]}"></span>
+                  <button class="secondary cal-remove" data-i="${i}">✕</button>
+                </div>`).join("")}
+            </div>
+            <button id="cal-add" class="secondary" style="margin-top:4px">+ Add calendar</button>
+          </div>`;
+        })() : ""}
         ${w.type === "image" ? `
         <div class="field">
           <label>Media folder</label>
@@ -432,8 +458,7 @@ class EinkPanel extends HTMLElement {
             </span>
             <button id="browse-media" class="secondary" style="white-space:nowrap">Browse…</button>
           </div>
-        </div>` : ""}
-        <div style="display:flex;gap:8px;margin-top:12px">
+        </div>` : ""}        <div style="display:flex;gap:8px;margin-top:12px">
           <button id="apply-widget">Apply</button>
           <button id="cancel-widget" class="secondary">Close</button>
           ${this._widgetAt(this._selectedCell.row, this._selectedCell.col)
@@ -491,8 +516,40 @@ class EinkPanel extends HTMLElement {
       });
       root.querySelector("#apply-widget")?.addEventListener("click", () => this._applyEdit());
       root.querySelector("#browse-media")?.addEventListener("click", () => this._openMediaBrowser());
-      root.querySelector("#cancel-widget")?.addEventListener("click", () => {
-        this._editingWidget = null;
+
+      if (w.type === "calendar") {
+        const _readCals = () => {
+          return [...root.querySelectorAll("#cal-list .cal-row")].map(row => ({
+            entity_id: row.querySelector(".cal-entity").value,
+            color: row.querySelector(".cal-color").value,
+          }));
+        };
+        root.querySelector("#cal-add")?.addEventListener("click", () => {
+          w.config = w.config || {};
+          w.config.calendars = _readCals();
+          w.config.calendars.push({});
+          this._render();
+        });
+        root.querySelectorAll(".cal-remove").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const i = parseInt(btn.dataset.i);
+            w.config = w.config || {};
+            w.config.calendars = _readCals().filter((_, j) => j !== i);
+            this._render();
+          });
+        });
+        root.querySelectorAll(".cal-entity, .cal-color").forEach(el => {
+          el.addEventListener("change", () => {
+            w.config = w.config || {};
+            w.config.calendars = _readCals();
+            // update color dot
+            const row = el.closest(".cal-row");
+            row.querySelector(".color-dot").style.background = PALETTE_HEX[row.querySelector(".cal-color").value] || "#000";
+          });
+        });
+      }
+
+      root.querySelector("#cancel-widget")?.addEventListener("click", () => {        this._editingWidget = null;
         this._selectedCell = null;
         this._render();
       });

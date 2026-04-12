@@ -28,6 +28,26 @@ EVENTS = {
     }
 }
 
+EVENTS_MULTI = {
+    "calendar.work": {
+        "events": [
+            {"start": "2026-04-12T09:00:00+02:00", "end": "2026-04-12T10:00:00+02:00", "summary": "Standup"},
+            {"start": "2026-04-12T14:00:00+02:00", "end": "2026-04-12T15:00:00+02:00", "summary": "Review"},
+        ]
+    },
+    "calendar.family": {
+        "events": [
+            {"start": "2026-04-12T09:30:00+02:00", "end": "2026-04-12T10:30:00+02:00", "summary": "Doctor"},
+            {"start": "2026-04-12T17:00:00+02:00", "end": "2026-04-12T18:00:00+02:00", "summary": "Dinner"},
+        ]
+    },
+    "calendar.sport": {
+        "events": [
+            {"start": "2026-04-12T07:00:00+02:00", "end": "2026-04-12T08:00:00+02:00", "summary": "Run"},
+        ]
+    },
+}
+
 FORECAST = [
     {"datetime": f"2026-04-12T{h:02d}:00:00+02:00", "condition": c, "temperature": 15 + h * 0.5, "precipitation": p}
     for h, c, p in [
@@ -78,3 +98,26 @@ async def test_calendar_with_forecast_snapshot(hass, assert_png_snapshot, row_sp
     png = await render_layout(hass, widgets, _coord())
     assert_no_bleed(png, widgets)
     assert_png_snapshot(png, f"calendar_forecast_{row_span}x{col_span}")
+
+
+async def test_calendar_multi_snapshot(hass, assert_png_snapshot):
+    async def _get_events(call):
+        entity_id = call.data["entity_id"]
+        return {entity_id: EVENTS_MULTI.get(entity_id, {"events": []})}
+
+    hass.services.async_register(
+        "calendar", "get_events", _get_events,
+        supports_response=SupportsResponse.ONLY,
+    )
+    widgets = [{"type": "calendar", "row": 0, "col": 0,
+                "row_span": 3, "col_span": 2,
+                "config": {
+                    "calendars": [
+                        {"entity_id": "calendar.work",   "color": "blue"},
+                        {"entity_id": "calendar.family", "color": "red"},
+                        {"entity_id": "calendar.sport",  "color": "green"},
+                    ],
+                    "start_hour": 7, "end_hour": 18,
+                }}]
+    png = await render_layout(hass, widgets, _coord())
+    assert_png_snapshot(png, "calendar_multi_3x2")
