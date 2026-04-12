@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 
 from homeassistant.core import HomeAssistant
 
-from .const import DISPLAY_HEIGHT, DISPLAY_WIDTH, GRID_COLS, GRID_ROWS, WIDGET_CALENDAR, WIDGET_IMAGE, WIDGET_WEATHER, BLACK, RED, WHITE
+from .const import DISPLAY_HEIGHT, DISPLAY_WIDTH, GRID_COLS, GRID_ROWS, WIDGET_CALENDAR, WIDGET_IMAGE, WIDGET_WEATHER, WIDGET_TEST, BLACK, RED, WHITE
 
 if TYPE_CHECKING:
     from .coordinator import DisplayCoordinator
@@ -55,6 +55,9 @@ async def render_layout(
             elif wtype == WIDGET_IMAGE:
                 from .widgets.image import render_image
                 await render_image(hass, img, draw, bbox, cfg, coordinator, idx, dither=dither)
+            elif wtype == WIDGET_TEST:
+                from .widgets.test import render_test
+                await render_test(hass, img, draw, bbox, cfg, dither=dither)
         except Exception:
             import logging
             logging.getLogger(__name__).exception("Widget %s render failed", wtype)

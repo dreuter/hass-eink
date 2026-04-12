@@ -3,7 +3,7 @@
 
 const GRID_ROWS = 3;
 const GRID_COLS = 4;
-const WIDGET_TYPES = ["weather", "calendar", "image"];
+const WIDGET_TYPES = ["weather", "calendar", "image", "test"];
 const PALETTE_COLORS = ["black", "white", "yellow", "red", "blue", "green"];
 const PALETTE_HEX = { black: "#000", white: "#fff", yellow: "#ff0", red: "#f00", blue: "#00f", green: "#0f0" };
 

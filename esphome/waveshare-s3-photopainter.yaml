@@ -53,9 +53,9 @@ sensor:
       state_class: measurement
 
 display:
-  - platform: waveshare_epaper
+  - platform: epaper_spi
     id: epaper
-    model: 7.30in-f
+    model: 7.3in-Spectra-E6
     cs_pin: GPIO9
     dc_pin: GPIO8
     busy_pin:
