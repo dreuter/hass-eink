@@ -37,6 +37,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     coordinator = DisplayCoordinator(hass, entry)
     hass.data[DOMAIN][entry.entry_id] = coordinator
 
+    await hass.config_entries.async_forward_entry_setups(entry, ["select"])
+
     async def handle_set_layout(call: ServiceCall) -> None:
         token = call.data.get(CONF_TOKEN)
         layout_name = call.data.get("layout")
@@ -67,6 +69,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    await hass.config_entries.async_unload_platforms(entry, ["select"])
     hass.data[DOMAIN].pop(entry.entry_id, None)
     return True
 
