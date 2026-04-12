@@ -1,2 +1,3 @@
 Pillow>=10.0.0
-hitherdither @ git+https://github.com/hbldh/hitherdither
+numpy>=1.24.0
+numba>=0.59.0
