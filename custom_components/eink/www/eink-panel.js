@@ -105,6 +105,7 @@ class EinkPanel extends HTMLElement {
       this._activeLayout = data.active_layout || Object.keys(this._layouts)[0] || "default";
       this._token = data.token || "";
       this._dither = data.dither || "atkinson";
+      this._esphomeDevice = data.esphome_device || null;
     } else {
       this._layouts = { default: [] };
       this._activeLayout = "default";
@@ -325,6 +326,7 @@ class EinkPanel extends HTMLElement {
       <label style="display:flex;align-items:center;gap:4px;font-size:0.9em">
         <input type="checkbox" id="dither-toggle" ${this._dither ? "checked" : ""}> Dither images
       </label>
+      ${this._esphomeDevice ? `<button id="refresh-display">↻ Refresh display</button>` : ""}
     `;
     root.appendChild(toolbar);
 
@@ -475,6 +477,10 @@ class EinkPanel extends HTMLElement {
     // Event listeners
     root.querySelector("#add-layout")?.addEventListener("click", () => this._addLayout());
     root.querySelector("#del-layout")?.addEventListener("click", () => this._deleteLayout());
+    root.querySelector("#refresh-display")?.addEventListener("click", () => {
+      const entity = `button.${this._esphomeDevice}_refresh_display`;
+      this._hass.callService("button", "press", { entity_id: entity });
+    });
     root.querySelector("#dither-select")?.addEventListener("change", async e => {
       this._dither = e.target.value;
       await this._persist();

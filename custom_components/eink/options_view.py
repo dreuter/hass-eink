@@ -25,5 +25,6 @@ class EinkOptionsView(HomeAssistantView):
         return self.json({
             "token": entry.data.get("token", ""),
             "dither": entry.options.get(CONF_DITHER, DITHER_DEFAULT),
+            "esphome_device": coordinator.esphome_device,
             **entry.options,
         })
