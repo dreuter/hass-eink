@@ -1,0 +1,40 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "E-Ink-Display hinzufügen",
+        "description": "Gib einen Namen für dieses Display ein. Ein eindeutiger Token wird generiert — kopiere ihn in deine ESPHome-Konfiguration.",
+        "data": {
+          "name": "Anzeigename"
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "E-Ink-Display",
+        "description": "**Token:** `{token}`\n\n**Vorschau:** {preview_url}\n\nLayouts im [E-Ink-Panel]({panel_url}) konfigurieren."
+      }
+    }
+  },
+  "state": {
+    "weather": {
+      "clear-night": "Klare Nacht",
+      "cloudy": "Bewölkt",
+      "exceptional": "Außergewöhnlich",
+      "fog": "Nebel",
+      "hail": "Hagel",
+      "lightning": "Gewitter",
+      "lightning-rainy": "Gewitter mit Regen",
+      "partlycloudy": "Teilweise bewölkt",
+      "pouring": "Starkregen",
+      "rainy": "Regnerisch",
+      "snowy": "Schnee",
+      "snowy-rainy": "Schneeregen",
+      "sunny": "Sonnig",
+      "windy": "Windig",
+      "windy-variant": "Windig"
+    }
+  }
+}

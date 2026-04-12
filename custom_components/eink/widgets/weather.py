@@ -6,6 +6,8 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 from homeassistant.core import HomeAssistant
 
+from ..const import DOMAIN
+
 _ICONS_DIR = Path(__file__).parent.parent / "icons"
 
 
@@ -14,6 +16,15 @@ def _load_icon(condition: str, size: int) -> Image.Image | None:
     if not path.exists():
         return None
     return Image.open(path).convert("RGBA").resize((size, size), Image.LANCZOS)
+
+
+async def _condition_label(hass: HomeAssistant, condition: str) -> str:
+    from homeassistant.helpers.translation import async_get_translations
+    translations = await async_get_translations(
+        hass, hass.config.language, "state", {DOMAIN}
+    )
+    key = f"component.{DOMAIN}.state.weather.{condition}"
+    return translations.get(key, condition.replace("-", " "))
 
 
 async def render_weather(
@@ -35,6 +46,7 @@ async def render_weather(
     condition = state.state
     temp = state.attributes.get("temperature", "")
     unit = state.attributes.get("temperature_unit", "°C")
+    label = await _condition_label(hass, condition)
 
     try:
         font_large = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", min(h // 3, w // 5, 64))
@@ -46,7 +58,6 @@ async def render_weather(
     icon_size = min(int(w * 0.8), h - font_large.size - font_small.size - 32)
     icon = await hass.async_add_executor_job(_load_icon, condition, icon_size)
     if icon:
-        # Paste icon centered horizontally, top portion
         ix = x0 + (w - icon.width) // 2
         iy = y0 + 8
         img.paste(icon, (ix, iy), icon)
@@ -56,4 +67,5 @@ async def render_weather(
         text_y = y0 + h // 2
 
     draw.text((x0 + 8, text_y), f"{temp}{unit}", font=font_large, fill="black")
-    draw.text((x0 + 8, text_y + font_large.size + 4), condition.replace("-", " ").title(), font=font_small, fill="gray")
+    if text_y + font_large.size + 4 + font_small.size < y1:
+        draw.text((x0 + 8, text_y + font_large.size + 4), label, font=font_small, fill="gray")

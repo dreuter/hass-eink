@@ -17,5 +17,24 @@
         "description": "**Token:** `{token}`\n\n**Preview:** {preview_url}\n\nConfigure layouts in the [E-Ink panel]({panel_url})."
       }
     }
+  },
+  "state": {
+    "weather": {
+      "clear-night": "Clear night",
+      "cloudy": "Cloudy",
+      "exceptional": "Exceptional",
+      "fog": "Fog",
+      "hail": "Hail",
+      "lightning": "Lightning",
+      "lightning-rainy": "Lightning and rain",
+      "partlycloudy": "Partly cloudy",
+      "pouring": "Pouring",
+      "rainy": "Rainy",
+      "snowy": "Snowy",
+      "snowy-rainy": "Snow and rain",
+      "sunny": "Sunny",
+      "windy": "Windy",
+      "windy-variant": "Windy"
+    }
   }
 }
