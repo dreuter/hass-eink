@@ -8,9 +8,10 @@ const WIDGET_TYPES = ["weather", "calendar", "image"];
 const WIDGET_FIELDS = {
   weather:  [{ key: "entity_id", label: "Weather entity", placeholder: "weather.forecast_home", domain: "weather" }],
   calendar: [
-    { key: "entity_id",  label: "Calendar entity", placeholder: "calendar.home", domain: "calendar" },
-    { key: "start_hour", label: "Start hour (0–24)", placeholder: "0" },
-    { key: "end_hour",   label: "End hour (0–24)",   placeholder: "24" },
+    { key: "entity_id",       label: "Calendar entity",        placeholder: "calendar.home", domain: "calendar" },
+    { key: "forecast_entity", label: "Weather forecast (opt)", placeholder: "",              domain: "weather" },
+    { key: "start_hour",      label: "Start hour (0–24)",      placeholder: "0" },
+    { key: "end_hour",        label: "End hour (0–24)",        placeholder: "24" },
   ],
   image: [], // handled separately via media browser
 };
@@ -387,16 +388,19 @@ class EinkPanel extends HTMLElement {
             : [];
           const currentVal = w.config?.[f.key] || "";
           if (entities.length) {
-            // Auto-default to first entity if nothing set
-            if (!currentVal && !w.config?.[f.key]) {
+            // Auto-default to first entity if nothing set — but only for required fields
+            const isOptional = f.placeholder === "";
+            if (!currentVal && !isOptional) {
               w.config = w.config || {};
               w.config[f.key] = entities[0];
             }
+            const selected = w.config?.[f.key] || "";
             return `
               <div class="field">
                 <label>${f.label}</label>
                 <select id="cfg-${f.key}">
-                  ${entities.map(e => `<option value="${e}" ${e === (w.config?.[f.key] || entities[0]) ? "selected" : ""}>${e}</option>`).join("")}
+                  ${isOptional ? `<option value="">— none —</option>` : ""}
+                  ${entities.map(e => `<option value="${e}" ${e === selected ? "selected" : ""}>${e}</option>`).join("")}
                 </select>
               </div>`;
           }

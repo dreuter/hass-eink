@@ -1,27 +1,19 @@
 """Weather widget."""
 from __future__ import annotations
 
+from pathlib import Path
+
 from PIL import Image, ImageDraw, ImageFont
 from homeassistant.core import HomeAssistant
 
-# Map HA weather condition strings to simple emoji-like text symbols
-CONDITION_ICONS = {
-    "clear-night": "🌙",
-    "cloudy": "☁️",
-    "exceptional": "⚠️",
-    "fog": "🌫️",
-    "hail": "🌨️",
-    "lightning": "⚡",
-    "lightning-rainy": "⛈️",
-    "partlycloudy": "⛅",
-    "pouring": "🌧️",
-    "rainy": "🌦️",
-    "snowy": "❄️",
-    "snowy-rainy": "🌨️",
-    "sunny": "☀️",
-    "windy": "💨",
-    "windy-variant": "💨",
-}
+_ICONS_DIR = Path(__file__).parent.parent / "icons"
+
+
+def _load_icon(condition: str, size: int) -> Image.Image | None:
+    path = _ICONS_DIR / f"{condition}.png"
+    if not path.exists():
+        return None
+    return Image.open(path).convert("RGBA").resize((size, size), Image.LANCZOS)
 
 
 async def render_weather(
@@ -41,18 +33,27 @@ async def render_weather(
         return
 
     condition = state.state
-    icon = CONDITION_ICONS.get(condition, "?")
     temp = state.attributes.get("temperature", "")
     unit = state.attributes.get("temperature_unit", "°C")
 
     try:
-        font_large = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", min(h // 2, 80))
-        font_small = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", min(h // 4, 32))
+        font_large = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", min(h // 3, 64))
+        font_small = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", min(h // 5, 32))
     except OSError:
         font_large = ImageFont.load_default()
         font_small = font_large
 
-    # condition text (icon fallback as text)
-    draw.text((x0 + 8, y0 + 8), icon, font=font_large, fill="black")
-    draw.text((x0 + 8, y0 + h // 2 + 4), f"{temp}{unit}", font=font_small, fill="black")
-    draw.text((x0 + 8, y0 + h * 3 // 4), condition.replace("-", " ").title(), font=font_small, fill="gray")
+    icon_size = int(w * 0.8)
+    icon = await hass.async_add_executor_job(_load_icon, condition, icon_size)
+    if icon:
+        # Paste icon centered horizontally, top portion
+        ix = x0 + (w - icon.width) // 2
+        iy = y0 + 8
+        img.paste(icon, (ix, iy), icon)
+        text_y = iy + icon.height + 8
+    else:
+        draw.text((x0 + 8, y0 + 8), condition, font=font_large, fill="black")
+        text_y = y0 + h // 2
+
+    draw.text((x0 + 8, text_y), f"{temp}{unit}", font=font_large, fill="black")
+    draw.text((x0 + 8, text_y + font_large.size + 4), condition.replace("-", " ").title(), font=font_small, fill="gray")
