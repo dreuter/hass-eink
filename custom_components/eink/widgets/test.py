@@ -8,7 +8,7 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 from homeassistant.core import HomeAssistant
 
-from ..const import BLACK, WHITE, YELLOW, RED, BLUE, GREEN, ORANGE
+from ..const import BLACK, WHITE, YELLOW, RED, BLUE, GREEN
 
 _FONTS_DIR = Path(__file__).parent.parent / "fonts"
 
@@ -19,7 +19,6 @@ _COLORS = [
     (GREEN,  "Green"),
     (BLUE,   "Blue"),
     (YELLOW, "Yellow"),
-    (ORANGE, "Orange"),
 ]
 
 
@@ -45,7 +44,7 @@ async def render_test(
         sx0 = x0 + i * sw
         sx1 = x0 + (i + 1) * sw
         draw.rectangle((sx0, y0, sx1 - 1, y0 + swatch_h - 1), fill=color)
-        text_color = BLACK if color in (WHITE, YELLOW, ORANGE) else WHITE
+        text_color = BLACK if color in (WHITE, YELLOW) else WHITE
         draw.text((sx0 + 4, y0 + swatch_h // 2 - font.size // 2), name, font=font, fill=text_color)
 
     # Bottom half: color wheel — render to temp image then dither
