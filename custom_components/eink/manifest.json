@@ -1,0 +1,10 @@
+{
+  "domain": "eink",
+  "name": "E-Ink Display",
+  "codeowners": ["@dreuter"],
+  "config_flow": true,
+  "documentation": "https://codeberg.org/dreuter/hass-eink",
+  "iot_class": "local_polling",
+  "requirements": ["Pillow>=10.0.0"],
+  "version": "0.1.0"
+}

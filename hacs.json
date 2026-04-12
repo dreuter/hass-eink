@@ -1,0 +1,6 @@
+{
+  "name": "E-Ink Display",
+  "description": "Serve rendered PNG layouts to ESPHome e-ink displays.",
+  "render_readme": true,
+  "homeassistant": "2024.1.0"
+}

@@ -1,0 +1,28 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Add E-Ink Display",
+        "description": "Enter a name for this display. A unique token will be generated — copy it into your ESPHome config.",
+        "data": {
+          "name": "Display name"
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Configure layouts",
+        "description": "**Token:** `{token}`\n\n**Preview:** [{preview_url}]({preview_url})\n\nDefine layouts as JSON. See documentation for the widget format.",
+        "data": {
+          "layouts": "Layouts (JSON)",
+          "active_layout": "Active layout name"
+        }
+      }
+    },
+    "error": {
+      "invalid_json": "Layouts must be valid JSON."
+    }
+  }
+}

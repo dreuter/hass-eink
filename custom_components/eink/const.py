@@ -1,0 +1,14 @@
+DOMAIN = "eink"
+
+CONF_TOKEN = "token"
+CONF_LAYOUTS = "layouts"
+CONF_ACTIVE_LAYOUT = "active_layout"
+
+DISPLAY_WIDTH = 800
+DISPLAY_HEIGHT = 480
+GRID_ROWS = 3
+GRID_COLS = 4
+
+WIDGET_WEATHER = "weather"
+WIDGET_CALENDAR = "calendar"
+WIDGET_IMAGE = "image"

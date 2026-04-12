@@ -1,0 +1,18 @@
+set_layout:
+  name: Set Layout
+  description: Switch the active layout for an E-Ink display.
+  fields:
+    token:
+      name: Token
+      description: The display token (from the integration config).
+      required: true
+      example: "abc123..."
+      selector:
+        text:
+    layout:
+      name: Layout name
+      description: Name of the layout to activate (must exist in the display's options).
+      required: true
+      example: "morning"
+      selector:
+        text:

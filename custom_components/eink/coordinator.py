@@ -1,0 +1,44 @@
+"""Display coordinator — holds active layout and image rotation state."""
+from __future__ import annotations
+
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
+
+from .const import CONF_ACTIVE_LAYOUT, CONF_LAYOUTS, CONF_TOKEN
+
+
+class DisplayCoordinator:
+    def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
+        self.hass = hass
+        self.entry = entry
+        self.token: str = entry.data[CONF_TOKEN]
+        self._image_indices: dict[int, int] = {}
+        self._image_lists: dict[int, list[str]] = {}
+
+    @property
+    def active_layout(self) -> str:
+        return self.entry.options.get(CONF_ACTIVE_LAYOUT, "default")
+
+    @property
+    def layouts(self) -> dict:
+        return self.entry.options.get(CONF_LAYOUTS, {"default": []})
+
+    @property
+    def active_widgets(self) -> list[dict]:
+        return self.layouts.get(self.active_layout, [])
+
+    async def set_layout(self, layout_name: str) -> None:
+        import logging
+        if layout_name not in self.layouts:
+            logging.getLogger(__name__).warning(
+                "Layout %s not found for display %s", layout_name, self.token
+            )
+            return
+        self.hass.config_entries.async_update_entry(
+            self.entry,
+            options={**self.entry.options, CONF_ACTIVE_LAYOUT: layout_name},
+        )
+
+    async def async_get_png(self) -> bytes:
+        from .renderer import render_layout
+        return await render_layout(self.hass, self.active_widgets, self)
