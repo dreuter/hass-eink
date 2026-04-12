@@ -30,6 +30,11 @@ class EinkView(HomeAssistantView):
         if coordinator is None:
             return web.Response(status=HTTPStatus.NOT_FOUND)
 
+        # Register the ESPHome device name if provided
+        device_name = request.headers.get("X-ESPHome-Device")
+        if device_name:
+            coordinator.esphome_device = device_name
+
         # Allow overriding the layout via ?layout=name for preview purposes
         layout_override = request.rel_url.query.get("layout")
 

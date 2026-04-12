@@ -14,6 +14,7 @@ class DisplayCoordinator:
         self.token: str = entry.data[CONF_TOKEN]
         self._image_indices: dict[int, int] = {}
         self._image_lists: dict[int, list[str]] = {}
+        self.esphome_device: str | None = None
 
     @property
     def active_layout(self) -> str:
@@ -42,6 +43,16 @@ class DisplayCoordinator:
             self.entry,
             options={**self.entry.options, CONF_ACTIVE_LAYOUT: layout_name},
         )
+        await self._trigger_refresh()
+
+    async def _trigger_refresh(self) -> None:
+        if not self.esphome_device:
+            return
+        entity_id = f"button.{self.esphome_device}_refresh_display"
+        if self.hass.states.get(entity_id):
+            await self.hass.services.async_call(
+                "button", "press", {"entity_id": entity_id}, blocking=False
+            )
 
     async def async_get_png(self, layout_override: str | None = None) -> bytes:
         from .renderer import render_layout

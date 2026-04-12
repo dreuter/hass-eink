@@ -47,6 +47,8 @@ online_image:
     format: png
     type: RGB
     resize: 800x480
+    request_headers:
+      X-ESPHome-Device: ${name}
     on_download_finished:
       - component.update: epaper
 
