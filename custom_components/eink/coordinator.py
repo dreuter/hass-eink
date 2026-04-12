@@ -39,6 +39,7 @@ class DisplayCoordinator:
             options={**self.entry.options, CONF_ACTIVE_LAYOUT: layout_name},
         )
 
-    async def async_get_png(self) -> bytes:
+    async def async_get_png(self, layout_override: str | None = None) -> bytes:
         from .renderer import render_layout
-        return await render_layout(self.hass, self.active_widgets, self)
+        widgets = self.layouts.get(layout_override, self.active_widgets) if layout_override else self.active_widgets
+        return await render_layout(self.hass, widgets, self)

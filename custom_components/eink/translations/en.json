@@ -13,16 +13,9 @@
   "options": {
     "step": {
       "init": {
-        "title": "Configure layouts",
-        "description": "**Token:** `{token}`\n\n**Preview:** [{preview_url}]({preview_url})\n\nDefine layouts as JSON. See documentation for the widget format.",
-        "data": {
-          "layouts": "Layouts (JSON)",
-          "active_layout": "Active layout name"
-        }
+        "title": "E-Ink Display",
+        "description": "**Token:** `{token}`\n\n**Preview:** {preview_url}\n\nConfigure layouts in the [E-Ink panel]({panel_url})."
       }
-    },
-    "error": {
-      "invalid_json": "Layouts must be valid JSON."
     }
   }
 }

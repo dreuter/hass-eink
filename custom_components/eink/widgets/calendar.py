@@ -29,8 +29,8 @@ async def render_calendar(
     cfg: dict,
 ) -> None:
     entity_id = cfg.get("entity_id", "calendar.home")
-    start_hour = int(cfg.get("start_hour", 0))
-    end_hour = int(cfg.get("end_hour", 24))
+    start_hour = int(cfg.get("start_hour") or 0)
+    end_hour = int(cfg.get("end_hour") or 24)
     x0, y0, x1, y1 = bbox
     w, h = x1 - x0, y1 - y0
 

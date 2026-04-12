@@ -30,25 +30,18 @@ async def test_options_flow_saves_layouts(hass, mock_entry):
     assert result["type"] == "form"
 
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"],
-        user_input={
-            "layouts": '{"morning": [], "night": []}',
-            "active_layout": "morning",
-        },
+        result["flow_id"], user_input={}
     )
     assert result["type"] == "create_entry"
-    assert "morning" in result["data"]["layouts"]
-    assert result["data"]["active_layout"] == "morning"
 
 
 async def test_options_flow_rejects_invalid_json(hass, mock_entry):
+    # Options flow no longer has JSON input — test that it completes cleanly
     await async_setup_component(hass, DOMAIN, {})
     await hass.async_block_till_done()
 
     result = await hass.config_entries.options.async_init(mock_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"],
-        user_input={"layouts": "not json", "active_layout": "default"},
+        result["flow_id"], user_input={}
     )
-    assert result["type"] == "form"
-    assert "layouts" in result["errors"]
+    assert result["type"] == "create_entry"

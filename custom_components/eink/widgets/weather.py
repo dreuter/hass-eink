@@ -31,7 +31,7 @@ async def render_weather(
     bbox: tuple[int, int, int, int],
     cfg: dict,
 ) -> None:
-    entity_id = cfg.get("entity_id", "weather.home")
+    entity_id = cfg.get("entity_id", "weather.forecast_home")
     state = hass.states.get(entity_id)
     x0, y0, x1, y1 = bbox
     w, h = x1 - x0, y1 - y0

@@ -30,8 +30,11 @@ class EinkView(HomeAssistantView):
         if coordinator is None:
             return web.Response(status=HTTPStatus.NOT_FOUND)
 
+        # Allow overriding the layout via ?layout=name for preview purposes
+        layout_override = request.rel_url.query.get("layout")
+
         try:
-            png = await coordinator.async_get_png()
+            png = await coordinator.async_get_png(layout_override=layout_override)
         except Exception:
             _LOGGER.exception("Failed to render PNG for token %s", token)
             return web.Response(status=HTTPStatus.INTERNAL_SERVER_ERROR)

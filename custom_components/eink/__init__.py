@@ -6,9 +6,10 @@ import logging
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, ServiceCall
 
-from .const import CONF_TOKEN, DOMAIN
+from .const import CONF_ACTIVE_LAYOUT, CONF_LAYOUTS, CONF_TOKEN, DOMAIN
 from .coordinator import DisplayCoordinator
 from .http import EinkView
+from .options_view import EinkOptionsView
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -16,18 +17,20 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     hass.data.setdefault(DOMAIN, {})
     if hass.http:
-        hass.http.register_view(EinkView(hass))
+        await _register_http(hass)
     else:
-        from homeassistant.components import http as http_component
-        hass.bus.async_listen_once(
-            "component_loaded",
-            lambda event: (
-                hass.http.register_view(EinkView(hass))
-                if event.data.get("component") == "http"
-                else None
-            ),
-        )
+        async def _on_http_loaded(event):
+            if event.data.get("component") == "http":
+                await _register_http(hass)
+        hass.bus.async_listen_once("component_loaded", _on_http_loaded)
     return True
+
+
+async def _register_http(hass: HomeAssistant) -> None:
+    hass.http.register_view(EinkView(hass))
+    hass.http.register_view(EinkOptionsView(hass))
+    from .panel import async_setup_panel
+    await async_setup_panel(hass)
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -42,12 +45,22 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 await coord.set_layout(layout_name)
                 break
 
-    hass.services.async_register(
-        DOMAIN,
-        "set_layout",
-        handle_set_layout,
-        schema=None,
-    )
+    async def handle_set_options(call: ServiceCall) -> None:
+        entry_id = call.data.get("entry_id")
+        layouts = call.data.get(CONF_LAYOUTS)
+        active_layout = call.data.get(CONF_ACTIVE_LAYOUT)
+        target_entry = hass.config_entries.async_get_entry(entry_id)
+        if target_entry and target_entry.domain == DOMAIN:
+            hass.config_entries.async_update_entry(
+                target_entry,
+                options={
+                    CONF_LAYOUTS: layouts,
+                    CONF_ACTIVE_LAYOUT: active_layout,
+                },
+            )
+
+    hass.services.async_register(DOMAIN, "set_layout", handle_set_layout)
+    hass.services.async_register(DOMAIN, "set_options", handle_set_options)
 
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
     return True

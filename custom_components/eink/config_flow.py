@@ -45,32 +45,18 @@ class EinkConfigFlow(ConfigFlow, domain=DOMAIN):
 
 class EinkOptionsFlow(OptionsFlow):
     async def async_step_init(self, user_input=None) -> FlowResult:
-        errors = {}
-        current_layouts = self.config_entry.options.get(CONF_LAYOUTS, DEFAULT_LAYOUT)
-        current_active = self.config_entry.options.get(CONF_ACTIVE_LAYOUT, "default")
-
         if user_input is not None:
-            try:
-                layouts = json.loads(user_input[CONF_LAYOUTS])
-                return self.async_create_entry(
-                    title="",
-                    data={
-                        CONF_LAYOUTS: layouts,
-                        CONF_ACTIVE_LAYOUT: user_input[CONF_ACTIVE_LAYOUT],
-                    },
-                )
-            except (json.JSONDecodeError, ValueError):
-                errors[CONF_LAYOUTS] = "invalid_json"
+            return self.async_create_entry(title="", data=self.config_entry.options)
 
+        token = self.config_entry.data.get(CONF_TOKEN, "")
+        entry_id = self.config_entry.entry_id
+        active = self.config_entry.options.get(CONF_ACTIVE_LAYOUT, "default")
         return self.async_show_form(
             step_id="init",
-            data_schema=vol.Schema({
-                vol.Required(CONF_LAYOUTS, default=json.dumps(current_layouts, indent=2)): str,
-                vol.Required(CONF_ACTIVE_LAYOUT, default=current_active): str,
-            }),
-            errors=errors,
+            data_schema=vol.Schema({}),
             description_placeholders={
-                "token": self.config_entry.data.get(CONF_TOKEN, ""),
-                "preview_url": f"/api/eink/{self.config_entry.data.get(CONF_TOKEN, '')}.png",
+                "token": token,
+                "preview_url": f"/api/eink/{token}.png",
+                "panel_url": f"/eink#entry={entry_id}&layout={active}",
             },
         )
