@@ -9,6 +9,11 @@ from homeassistant.core import HomeAssistant
 from ..const import DOMAIN, BLACK, WHITE, RED
 
 _ICONS_DIR = Path(__file__).parent.parent / "icons"
+_FONTS_DIR = Path(__file__).parent.parent / "fonts"
+
+def _find_font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont:
+    name = "DejaVuSans-Bold.ttf" if bold else "DejaVuSans.ttf"
+    return ImageFont.truetype(str(_FONTS_DIR / name), size)
 
 
 def _load_icon(condition: str, size: int) -> Image.Image | None:
@@ -50,12 +55,8 @@ async def render_weather(
     unit = state.attributes.get("temperature_unit", "°C")
     label = await _condition_label(hass, condition)
 
-    try:
-        font_large = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", min(h // 3, w // 5, 64))
-        font_small = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", min(h // 5, w // 8, 32))
-    except OSError:
-        font_large = ImageFont.load_default()
-        font_small = font_large
+    font_large = _find_font(min(h // 3, w // 5, 64), bold=True)
+    font_small = _find_font(min(h // 5, w // 8, 32))
 
     icon_size = min(int(w * 0.8), h - font_large.size - font_small.size - 32)
     icon = await hass.async_add_executor_job(_load_icon, condition, icon_size)

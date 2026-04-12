@@ -14,8 +14,9 @@ def _draw_gray_line(draw, x0: int, y: int, x1: int) -> None:
         if (x + y) % 2 == 0:
             draw.point((x, y), fill=BLACK)
 
-_FONT = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
-_FONT_BOLD = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
+_FONTS_DIR = Path(__file__).parent.parent / "fonts"
+_FONT = _FONTS_DIR / "DejaVuSans.ttf"
+_FONT_BOLD = _FONTS_DIR / "DejaVuSans-Bold.ttf"
 _ICONS_DIR = Path(__file__).parent.parent / "icons"
 
 
@@ -27,14 +28,10 @@ def _load_icon(condition: str, size: int) -> Image.Image | None:
 
 
 def _fonts(size: int):
-    try:
-        return (
-            ImageFont.truetype(_FONT, size),
-            ImageFont.truetype(_FONT_BOLD, size),
-        )
-    except OSError:
-        f = ImageFont.load_default()
-        return f, f
+    return (
+        ImageFont.truetype(str(_FONT), size),
+        ImageFont.truetype(str(_FONT_BOLD), size),
+    )
 
 
 async def _get_forecast(hass: HomeAssistant, entity_id: str, start_hour: int, end_hour: int) -> dict[int, dict]:
