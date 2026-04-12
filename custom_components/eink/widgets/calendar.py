@@ -6,6 +6,13 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 from homeassistant.core import HomeAssistant
+from ..const import BLACK, WHITE, RED, BLUE
+
+def _draw_gray_line(draw, x0: int, y: int, x1: int) -> None:
+    """Draw a horizontal line using alternating black/white pixels to simulate gray."""
+    for x in range(x0, x1):
+        if (x + y) % 2 == 0:
+            draw.point((x, y), fill=BLACK)
 
 _FONT = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
 _FONT_BOLD = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
@@ -60,6 +67,7 @@ async def render_calendar(
     draw: ImageDraw.ImageDraw,
     bbox: tuple[int, int, int, int],
     cfg: dict,
+    dither: str = "none",
 ) -> None:
     entity_id = cfg.get("entity_id", "calendar.home")
     start_hour = int(cfg.get("start_hour") or 0)
@@ -87,7 +95,7 @@ async def render_calendar(
         )
         events = (result or {}).get(entity_id, {}).get("events", [])
     except Exception:
-        draw.text((x0 + 4, y0 + 4), "Calendar error", fill="red", font=font_sm)
+        draw.text((x0 + 4, y0 + 4), "Calendar error", fill=RED, font=font_sm)
         return
 
     # Fetch forecast if configured
@@ -99,9 +107,9 @@ async def render_calendar(
 
     banner_h = (font_sm.size + 4) * len(all_day) if all_day else 0
     if all_day:
-        draw.rectangle((x0, y0, x1 - 1, y0 + banner_h), fill="black")
+        draw.rectangle((x0, y0, x1 - 1, y0 + banner_h), fill=BLACK)
         for i, e in enumerate(all_day):
-            draw.text((x0 + 4, y0 + i * (font_sm.size + 4) + 2), e.get("summary", ""), font=font_sm, fill="white")
+            draw.text((x0 + 4, y0 + i * (font_sm.size + 4) + 2), e.get("summary", ""), font=font_sm, fill=WHITE)
 
     # Timeline
     tl_y0 = y0 + banner_h
@@ -118,9 +126,9 @@ async def render_calendar(
     # Hour lines + labels + forecast
     for hr in range(start_hour, end_hour + 1):
         y = time_to_y(hr)
-        draw.line((x0 + label_w, y, x1 - 1, y), fill="lightgray", width=1)
+        _draw_gray_line(draw, x0 + label_w, y, x1 - 1)
         if hr < end_hour:
-            draw.text((x0 + 2, y + 1), f"{hr:02d}", font=font_sm, fill="gray")
+            draw.text((x0 + 2, y + 1), f"{hr:02d}", font=font_sm, fill=BLACK)
 
             if forecast and hr in forecast:
                 f = forecast[hr]
@@ -132,12 +140,19 @@ async def render_calendar(
                 fy = y + 1
                 icon = await hass.async_add_executor_job(_load_icon, condition, icon_size)
                 if icon:
-                    img.paste(icon, (col_x + 2, fy), icon)
+                    if dither != "none":
+                        from ..dither import dither_image
+                        bg = Image.new("RGB", icon.size, WHITE)
+                        bg.paste(icon, mask=icon.split()[3])
+                        bg = await hass.async_add_executor_job(dither_image, bg, dither)
+                        img.paste(bg, (col_x + 2, fy))
+                    else:
+                        img.paste(icon, (col_x + 2, fy), icon)
                 tx = col_x + icon_size + 4
                 if temp is not None:
-                    draw.text((tx, fy), f"{temp:.0f}°", font=font_sm, fill="black")
+                    draw.text((tx, fy), f"{temp:.0f}°", font=font_sm, fill=BLACK)
                 if precip > 0:
-                    draw.text((tx, fy + font_sm.size + 1), f"{precip:.1f}mm", font=font_sm, fill="#0066cc")
+                    draw.text((tx, fy + font_sm.size + 1), f"{precip:.1f}mm", font=font_sm, fill=BLUE)
 
     # Event bubbles
     for event in timed:
@@ -154,9 +169,9 @@ async def render_calendar(
 
         ey0 = time_to_y(sh) + 1
         ey1 = max(time_to_y(eh) - 1, ey0 + font_sm.size + 2)
-        draw.rounded_rectangle((event_x0, ey0, event_x1, ey1), radius=2, fill="black")
+        draw.rounded_rectangle((event_x0, ey0, event_x1, ey1), radius=2, fill=BLACK)
         draw.text(
             (event_x0 + 2, ey0 + 1),
             f"{ev_start.strftime('%H:%M')} {event.get('summary', '')}",
-            font=font_sm, fill="white",
+            font=font_sm, fill=WHITE,
         )

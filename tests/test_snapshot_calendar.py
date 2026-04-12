@@ -13,6 +13,7 @@ def _coord():
     c = MagicMock()
     c._image_indices = {}
     c._image_lists = {}
+    c.dither = "atkinson"
     return c
 
 

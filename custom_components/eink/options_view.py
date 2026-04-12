@@ -7,7 +7,7 @@ from aiohttp import web
 from homeassistant.components.http import HomeAssistantView
 from homeassistant.core import HomeAssistant
 
-from .const import DOMAIN
+from .const import CONF_DITHER, DITHER_DEFAULT, DOMAIN
 
 
 class EinkOptionsView(HomeAssistantView):
@@ -24,5 +24,6 @@ class EinkOptionsView(HomeAssistantView):
             return web.Response(status=HTTPStatus.NOT_FOUND)
         return self.json({
             "token": entry.data.get("token", ""),
+            "dither": entry.options.get(CONF_DITHER, DITHER_DEFAULT),
             **entry.options,
         })

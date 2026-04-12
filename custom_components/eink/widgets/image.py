@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 
 from PIL import Image, ImageDraw
 from homeassistant.core import HomeAssistant
+from ..const import BLACK, RED
 
 if TYPE_CHECKING:
     from ..coordinator import DisplayCoordinator
@@ -44,13 +45,14 @@ async def render_image(
     cfg: dict,
     coordinator: "DisplayCoordinator",
     widget_idx: int,
+    dither: str = "none",
 ) -> None:
     media_content_id = cfg.get("media_content_id")
     x0, y0, x1, y1 = bbox
     w, h = x1 - x0, y1 - y0
 
     if not media_content_id:
-        draw.text((x0 + 4, y0 + 4), "No media source configured", fill="gray")
+        draw.text((x0 + 4, y0 + 4), "No media source configured", fill=BLACK)
         return
 
     if widget_idx not in coordinator._image_lists:
@@ -59,12 +61,12 @@ async def render_image(
             coordinator._image_indices.setdefault(widget_idx, 0)
         except Exception:
             _LOGGER.exception("Failed to browse media source %s", media_content_id)
-            draw.text((x0 + 4, y0 + 4), "Media source error", fill="red")
+            draw.text((x0 + 4, y0 + 4), "Media source error", fill=RED)
             return
 
     image_list = coordinator._image_lists[widget_idx]
     if not image_list:
-        draw.text((x0 + 4, y0 + 4), "No images found", fill="gray")
+        draw.text((x0 + 4, y0 + 4), "No images found", fill=BLACK)
         return
 
     idx = coordinator._image_indices.get(widget_idx, 0) % len(image_list)
@@ -75,9 +77,14 @@ async def render_image(
         photo = await hass.async_add_executor_job(lambda: Image.open(path).convert("RGB"))
     except Exception:
         _LOGGER.exception("Failed to open image %s", path)
-        draw.text((x0 + 4, y0 + 4), "Image error", fill="red")
+        draw.text((x0 + 4, y0 + 4), "Image error", fill=RED)
         return
 
     photo.thumbnail((w, h), Image.LANCZOS)
     pw, ph = photo.size
-    img.paste(photo, (x0 + (w - pw) // 2, y0 + (h - ph) // 2))
+    paste_x = x0 + (w - pw) // 2
+    paste_y = y0 + (h - ph) // 2
+    if dither != "none":
+        from ..dither import dither_image
+        photo = await hass.async_add_executor_job(dither_image, photo, dither)
+    img.paste(photo, (paste_x, paste_y))

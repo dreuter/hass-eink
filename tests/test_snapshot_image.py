@@ -6,6 +6,7 @@ from unittest.mock import MagicMock, patch, AsyncMock
 
 import pytest
 
+from PIL import Image
 from custom_components.eink.renderer import render_layout
 
 FIXTURE_IMAGE = Path(__file__).parent / "fixtures" / "atlas_mountains.jpg"
@@ -17,6 +18,7 @@ def _coord_with_image():
     c = MagicMock()
     c._image_indices = {0: 0}
     c._image_lists = {0: [str(FIXTURE_IMAGE)]}
+    c.dither = "none"
     return c
 
 
@@ -34,6 +36,27 @@ async def test_image_snapshot(hass, assert_png_snapshot, row_span, col_span):
                     "config": {"media_content_id": "media-source://media_source/local/test"}}]
         coord._image_lists = {}
         coord._image_indices = {}
+        coord.dither = "none"
         png = await render_layout(hass, widgets, coord)
     assert_no_bleed(png, widgets)
     assert_png_snapshot(png, f"image_{row_span}x{col_span}")
+
+
+DITHER_ALGOS = ["none", "floyd-steinberg", "atkinson", "jarvis"]
+
+
+@pytest.mark.parametrize("algo", DITHER_ALGOS)
+async def test_image_dither_snapshot(hass, assert_png_snapshot, algo):
+    coord = _coord_with_image()
+    with patch(
+        "custom_components.eink.widgets.image._browse",
+        AsyncMock(return_value=[str(FIXTURE_IMAGE)]),
+    ):
+        widgets = [{"type": "image", "row": 0, "col": 0,
+                    "row_span": 2, "col_span": 2,
+                    "config": {"media_content_id": "media-source://media_source/local/test"}}]
+        coord._image_lists = {}
+        coord._image_indices = {}
+        coord.dither = algo
+        png = await render_layout(hass, widgets, coord, algo)
+    assert_png_snapshot(png, f"image_dither_{algo}")

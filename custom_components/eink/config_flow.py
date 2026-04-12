@@ -11,7 +11,7 @@ import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry, ConfigFlow, OptionsFlow
 from homeassistant.data_entry_flow import FlowResult
 
-from .const import CONF_ACTIVE_LAYOUT, CONF_LAYOUTS, CONF_TOKEN, DOMAIN
+from .const import CONF_ACTIVE_LAYOUT, CONF_DITHER, CONF_LAYOUTS, CONF_TOKEN, DOMAIN
 
 DEFAULT_LAYOUT = {
     "default": []

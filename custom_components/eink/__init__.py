@@ -6,7 +6,7 @@ import logging
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, ServiceCall
 
-from .const import CONF_ACTIVE_LAYOUT, CONF_LAYOUTS, CONF_TOKEN, DOMAIN
+from .const import CONF_ACTIVE_LAYOUT, CONF_DITHER, CONF_LAYOUTS, CONF_TOKEN, DITHER_DEFAULT, DOMAIN
 from .coordinator import DisplayCoordinator
 from .http import EinkView
 from .options_view import EinkOptionsView
@@ -51,6 +51,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry_id = call.data.get("entry_id")
         layouts = call.data.get(CONF_LAYOUTS)
         active_layout = call.data.get(CONF_ACTIVE_LAYOUT)
+        dither = call.data.get(CONF_DITHER, DITHER_DEFAULT)
         target_entry = hass.config_entries.async_get_entry(entry_id)
         if target_entry and target_entry.domain == DOMAIN:
             hass.config_entries.async_update_entry(
@@ -58,6 +59,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 options={
                     CONF_LAYOUTS: layouts,
                     CONF_ACTIVE_LAYOUT: active_layout,
+                    CONF_DITHER: dither,
                 },
             )
 

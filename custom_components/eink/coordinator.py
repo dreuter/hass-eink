@@ -4,7 +4,7 @@ from __future__ import annotations
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
-from .const import CONF_ACTIVE_LAYOUT, CONF_LAYOUTS, CONF_TOKEN
+from .const import CONF_ACTIVE_LAYOUT, CONF_DITHER, CONF_LAYOUTS, CONF_TOKEN, DITHER_DEFAULT
 
 
 class DisplayCoordinator:
@@ -27,6 +27,10 @@ class DisplayCoordinator:
     def active_widgets(self) -> list[dict]:
         return self.layouts.get(self.active_layout, [])
 
+    @property
+    def dither(self) -> str:
+        return self.entry.options.get(CONF_DITHER, DITHER_DEFAULT)
+
     async def set_layout(self, layout_name: str) -> None:
         import logging
         if layout_name not in self.layouts:
@@ -42,4 +46,4 @@ class DisplayCoordinator:
     async def async_get_png(self, layout_override: str | None = None) -> bytes:
         from .renderer import render_layout
         widgets = self.layouts.get(layout_override, self.active_widgets) if layout_override else self.active_widgets
-        return await render_layout(self.hass, widgets, self)
+        return await render_layout(self.hass, widgets, self, self.dither)

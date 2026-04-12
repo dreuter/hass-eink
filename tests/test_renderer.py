@@ -13,6 +13,7 @@ def _make_coordinator():
     coord = MagicMock()
     coord._image_indices = {}
     coord._image_lists = {}
+    coord.dither = "none"
     return coord
 
 

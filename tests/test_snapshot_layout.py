@@ -42,6 +42,7 @@ async def test_weather_and_calendar_snapshot(hass, assert_png_snapshot):
     coord = MagicMock()
     coord._image_indices = {}
     coord._image_lists = {}
+    coord.dither = "atkinson"
     widgets = [
         {"type": "weather",  "row": 0, "col": 0, "row_span": 3, "col_span": 3,
          "config": {"entity_id": "weather.home"}},

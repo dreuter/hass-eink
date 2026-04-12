@@ -6,7 +6,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 from homeassistant.core import HomeAssistant
 
-from ..const import DOMAIN
+from ..const import DOMAIN, BLACK, WHITE, RED
 
 _ICONS_DIR = Path(__file__).parent.parent / "icons"
 
@@ -27,12 +27,14 @@ async def _condition_label(hass: HomeAssistant, condition: str) -> str:
     return translations.get(key, condition.replace("-", " "))
 
 
+
 async def render_weather(
     hass: HomeAssistant,
     img: Image.Image,
     draw: ImageDraw.ImageDraw,
     bbox: tuple[int, int, int, int],
     cfg: dict,
+    dither: str = "none",
 ) -> None:
     entity_id = cfg.get("entity_id", "weather.forecast_home")
     state = hass.states.get(entity_id)
@@ -40,7 +42,7 @@ async def render_weather(
     w, h = x1 - x0, y1 - y0
 
     if state is None:
-        draw.text((x0 + 4, y0 + 4), f"No entity:\n{entity_id}", fill="red")
+        draw.text((x0 + 4, y0 + 4), f"No entity:\n{entity_id}", fill=RED)
         return
 
     condition = state.state
@@ -60,12 +62,20 @@ async def render_weather(
     if icon:
         ix = x0 + (w - icon.width) // 2
         iy = y0 + 8
-        img.paste(icon, (ix, iy), icon)
+        if dither != "none":
+            from ..dither import dither_image
+            # Composite icon onto white, dither, then paste without alpha
+            bg = Image.new("RGB", icon.size, WHITE)
+            bg.paste(icon, mask=icon.split()[3])
+            bg = await hass.async_add_executor_job(dither_image, bg, dither)
+            img.paste(bg, (ix, iy))
+        else:
+            img.paste(icon, (ix, iy), icon)
         text_y = iy + icon.height + 8
     else:
         draw.text((x0 + 8, y0 + 8), condition, font=font_large, fill="black")
         text_y = y0 + h // 2
 
-    draw.text((x0 + 8, text_y), f"{temp}{unit}", font=font_large, fill="black")
+    draw.text((x0 + 8, text_y), f"{temp}{unit}", font=font_large, fill=BLACK)
     if text_y + font_large.size + 4 + font_small.size < y1:
-        draw.text((x0 + 8, text_y + font_large.size + 4), label, font=font_small, fill="gray")
+        draw.text((x0 + 8, text_y + font_large.size + 4), label, font=font_small, fill=BLACK)

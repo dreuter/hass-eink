@@ -99,6 +99,7 @@ class EinkPanel extends HTMLElement {
       this._layouts = data.layouts || { default: [] };
       this._activeLayout = data.active_layout || Object.keys(this._layouts)[0] || "default";
       this._token = data.token || "";
+      this._dither = data.dither || "atkinson";
     } else {
       this._layouts = { default: [] };
       this._activeLayout = "default";
@@ -252,6 +253,7 @@ class EinkPanel extends HTMLElement {
         entry_id: this._selectedEntry.entry_id,
         layouts: this._layouts,
         active_layout: this._activeLayout,
+        dither: this._dither,
       });
     } catch (e) {
       console.error("Failed to save eink options", e);
@@ -308,6 +310,16 @@ class EinkPanel extends HTMLElement {
       </select>
       <button id="add-layout" class="secondary">+ Layout</button>
       <button id="del-layout" class="secondary danger">Delete layout</button>
+      <label style="font-size:0.9em">Dither:
+        <select id="dither-select">
+          ${["none","floyd-steinberg","atkinson","jarvis"].map(v =>
+            `<option value="${v}" ${v === this._dither ? "selected" : ""}>${v}</option>`
+          ).join("")}
+        </select>
+      </label>
+      <label style="display:flex;align-items:center;gap:4px;font-size:0.9em">
+        <input type="checkbox" id="dither-toggle" ${this._dither ? "checked" : ""}> Dither images
+      </label>
     `;
     root.appendChild(toolbar);
 
@@ -438,6 +450,11 @@ class EinkPanel extends HTMLElement {
     // Event listeners
     root.querySelector("#add-layout")?.addEventListener("click", () => this._addLayout());
     root.querySelector("#del-layout")?.addEventListener("click", () => this._deleteLayout());
+    root.querySelector("#dither-select")?.addEventListener("change", async e => {
+      this._dither = e.target.value;
+      await this._persist();
+      this._refreshPreview();
+    });
 
     root.querySelector("#entry-select")?.addEventListener("change", async e => {
       await this._selectEntry(e.target.value);

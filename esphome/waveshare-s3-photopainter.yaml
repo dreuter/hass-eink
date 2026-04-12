@@ -52,11 +52,6 @@ sensor:
       device_class: humidity
       state_class: measurement
 
-epaper_dither:
-  id: ditherer
-  algorithm: jarvis
-  diffusion: 0.8
-
 display:
   - platform: waveshare_epaper
     id: epaper
@@ -73,5 +68,5 @@ display:
       number: GPIO12
     rotation: 180°
     lambda: |
-      id(ditherer).dither_and_draw(it, *id(display_image), 800, 480);
+      it.image(0, 0, id(display_image));
     update_interval: never

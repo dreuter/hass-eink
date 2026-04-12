@@ -12,13 +12,6 @@ esphome:
 packages:
   board: !include waveshare-s3-photopainter.yaml
 
-external_components:
-  - source:
-      type: git
-      url: https://github.com/dreuter/hass-eink
-      ref: main
-    components: [epaper_dither]
-
 logger:
 
 api:

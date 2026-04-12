@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 
 from homeassistant.core import HomeAssistant
 
-from .const import DISPLAY_HEIGHT, DISPLAY_WIDTH, GRID_COLS, GRID_ROWS, WIDGET_CALENDAR, WIDGET_IMAGE, WIDGET_WEATHER
+from .const import DISPLAY_HEIGHT, DISPLAY_WIDTH, GRID_COLS, GRID_ROWS, WIDGET_CALENDAR, WIDGET_IMAGE, WIDGET_WEATHER, BLACK, RED, WHITE
 
 if TYPE_CHECKING:
     from .coordinator import DisplayCoordinator
@@ -26,10 +26,13 @@ async def render_layout(
     hass: HomeAssistant,
     widgets: list[dict],
     coordinator: "DisplayCoordinator",
+    dither: str | None = None,
 ) -> bytes:
+    if dither is None:
+        dither = coordinator.dither
     from PIL import Image, ImageDraw
 
-    img = Image.new("RGB", (DISPLAY_WIDTH, DISPLAY_HEIGHT), "white")
+    img = Image.new("RGB", (DISPLAY_WIDTH, DISPLAY_HEIGHT), WHITE)
     draw = ImageDraw.Draw(img)
 
     for idx, widget in enumerate(widgets):
@@ -45,20 +48,19 @@ async def render_layout(
         try:
             if wtype == WIDGET_WEATHER:
                 from .widgets.weather import render_weather
-                await render_weather(hass, img, draw, bbox, cfg)
+                await render_weather(hass, img, draw, bbox, cfg, dither=dither)
             elif wtype == WIDGET_CALENDAR:
                 from .widgets.calendar import render_calendar
-                await render_calendar(hass, img, draw, bbox, cfg)
+                await render_calendar(hass, img, draw, bbox, cfg, dither=dither)
             elif wtype == WIDGET_IMAGE:
                 from .widgets.image import render_image
-                await render_image(hass, img, draw, bbox, cfg, coordinator, idx)
+                await render_image(hass, img, draw, bbox, cfg, coordinator, idx, dither=dither)
         except Exception:
             import logging
             logging.getLogger(__name__).exception("Widget %s render failed", wtype)
-            draw.rectangle(bbox, outline="red")
+            draw.rectangle(bbox, outline=RED)
 
-        # draw cell border (inset 1px so outline stays within bbox)
-        draw.rectangle((bbox[0], bbox[1], bbox[2]-1, bbox[3]-1), outline="lightgray")
+
 
     buf = io.BytesIO()
     img.save(buf, format="PNG")
