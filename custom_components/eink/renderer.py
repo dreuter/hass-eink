@@ -57,8 +57,8 @@ async def render_layout(
             logging.getLogger(__name__).exception("Widget %s render failed", wtype)
             draw.rectangle(bbox, outline="red")
 
-        # draw cell border
-        draw.rectangle(bbox, outline="lightgray")
+        # draw cell border (inset 1px so outline stays within bbox)
+        draw.rectangle((bbox[0], bbox[1], bbox[2]-1, bbox[3]-1), outline="lightgray")
 
     buf = io.BytesIO()
     img.save(buf, format="PNG")

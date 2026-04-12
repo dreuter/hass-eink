@@ -37,13 +37,13 @@ async def render_weather(
     unit = state.attributes.get("temperature_unit", "°C")
 
     try:
-        font_large = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", min(h // 3, 64))
-        font_small = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", min(h // 5, 32))
+        font_large = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", min(h // 3, w // 5, 64))
+        font_small = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", min(h // 5, w // 8, 32))
     except OSError:
         font_large = ImageFont.load_default()
         font_small = font_large
 
-    icon_size = int(w * 0.8)
+    icon_size = min(int(w * 0.8), h - font_large.size - font_small.size - 32)
     icon = await hass.async_add_executor_job(_load_icon, condition, icon_size)
     if icon:
         # Paste icon centered horizontally, top portion

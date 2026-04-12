@@ -45,6 +45,7 @@ async def test_render_missing_weather_entity(hass):
 
 
 async def test_render_calendar_widget(hass):
+    from homeassistant.core import SupportsResponse
     hass.services.async_register(
         "calendar", "get_events",
         AsyncMock(return_value={
@@ -55,6 +56,7 @@ async def test_render_calendar_widget(hass):
                 ]
             }
         }),
+        supports_response=SupportsResponse.ONLY,
     )
     widgets = [{"type": "calendar", "row": 0, "col": 0, "row_span": 3, "col_span": 2,
                 "config": {"entity_id": "calendar.home", "start_hour": 8, "end_hour": 18}}]

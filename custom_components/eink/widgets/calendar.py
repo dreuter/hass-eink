@@ -99,7 +99,7 @@ async def render_calendar(
 
     banner_h = (font_sm.size + 4) * len(all_day) if all_day else 0
     if all_day:
-        draw.rectangle((x0, y0, x1, y0 + banner_h), fill="black")
+        draw.rectangle((x0, y0, x1 - 1, y0 + banner_h), fill="black")
         for i, e in enumerate(all_day):
             draw.text((x0 + 4, y0 + i * (font_sm.size + 4) + 2), e.get("summary", ""), font=font_sm, fill="white")
 
@@ -118,7 +118,7 @@ async def render_calendar(
     # Hour lines + labels + forecast
     for hr in range(start_hour, end_hour + 1):
         y = time_to_y(hr)
-        draw.line((x0 + label_w, y, x1, y), fill="lightgray", width=1)
+        draw.line((x0 + label_w, y, x1 - 1, y), fill="lightgray", width=1)
         if hr < end_hour:
             draw.text((x0 + 2, y + 1), f"{hr:02d}", font=font_sm, fill="gray")
 
