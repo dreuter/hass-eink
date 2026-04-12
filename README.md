@@ -36,25 +36,9 @@ Copy `custom_components/eink/` into your HA `config/custom_components/` director
 
 ## ESPHome configuration
 
-```yaml
-http_request:
-  useragent: esphome
+Copy [`esphome/sample-config.yaml`](esphome/sample-config.yaml) into your ESPHome config directory, fill in your token and HA URL, and flash.
 
-display:
-  - platform: waveshare_epaper   # adjust to your display
-    # ... your pins ...
-    lambda: |-
-      it.image(0, 0, id(eink_image));
-
-image:
-  - platform: online_image
-    id: eink_image
-    url: "http://homeassistant.local:8123/api/eink/YOUR_TOKEN_HERE.png"
-    format: PNG
-    update_interval: 5min
-```
-
-Replace `YOUR_TOKEN_HERE` with the token shown during setup.
+The display refreshes at the top of every hour and on WiFi connect. A `button.refresh_display` entity is exposed to HA for manual refreshes.
 
 ## Layout configuration
 

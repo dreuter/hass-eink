@@ -1,0 +1,11 @@
+substitutions:
+  ha_url: "http://homeassistant.local:8123"
+  eink_token: "YOUR_TOKEN_HERE"
+  name: "hass-eink"
+
+packages:
+  client:
+    url: https://github.com/dreuter/hass-eink
+    ref: main
+    files: [esphome/hass-eink-client.yaml]
+    refresh: 1d

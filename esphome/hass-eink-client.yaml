@@ -1,0 +1,66 @@
+substitutions:
+  # Your Home Assistant URL (no trailing slash)
+  ha_url: "http://homeassistant.local:8123"
+  # Token from the E-Ink Display integration (Settings → Integrations → E-Ink Display)
+  eink_token: "YOUR_TOKEN_HERE"
+  # How often to refresh the display
+  update_interval: "1h"
+
+esphome:
+  name: ${name}
+
+packages:
+  board: !include waveshare-s3-photopainter.yaml
+
+external_components:
+  - source:
+      type: git
+      url: https://github.com/dreuter/hass-eink
+      ref: main
+    components: [epaper_dither]
+
+logger:
+
+api:
+  encryption:
+    key: !secret api_encryption_key
+
+ota:
+  - platform: esphome
+    password: ""
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  ap:
+    ssid: "hass-eink-client Fallback"
+  on_connect:
+    - component.update: display_image
+
+captive_portal:
+
+button:
+  - platform: template
+    name: "Refresh display"
+    on_press:
+      - component.update: display_image
+
+http_request:
+  verify_ssl: false
+
+online_image:
+  - id: display_image
+    url: "${ha_url}/api/eink/${eink_token}.png"
+    format: png
+    type: RGB
+    resize: 800x480
+    on_download_finished:
+      - component.update: epaper
+
+time:
+  - platform: homeassistant
+    id: ha_time
+    on_time:
+      - cron: "0 0 * * * *"
+        then:
+          - component.update: display_image

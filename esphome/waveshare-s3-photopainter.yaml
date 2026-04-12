@@ -1,0 +1,77 @@
+esphome:
+  on_boot:
+    priority: 800
+    then:
+      - output.turn_off: axp_irq
+      - delay: 100ms
+      - output.turn_on: axp_irq
+      - delay: 200ms
+      - lambda: |-
+          uint8_t buf[2];
+          buf[0] = 0x94; buf[1] = 0x1C;  // ALDO3 voltage = 3.3V
+          id(bus).write(0x34, buf, 2);
+          buf[0] = 0x95; buf[1] = 0x1C;  // ALDO4 voltage = 3.3V
+          id(bus).write(0x34, buf, 2);
+          buf[0] = 0x90; buf[1] = 0x3C;  // Enable ALDO1-ALDO4
+          id(bus).write(0x34, buf, 2);
+
+esp32:
+  board: esp32-s3-devkitc-1
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+
+psram:
+  mode: octal
+
+output:
+  - platform: gpio
+    id: axp_irq
+    pin: GPIO21
+
+i2c:
+  id: bus
+  sda: GPIO47
+  scl: GPIO48
+
+spi:
+  clk_pin: GPIO10
+  mosi_pin: GPIO11
+
+sensor:
+  - platform: shtcx
+    temperature:
+      id: temperature
+      unit_of_measurement: "°C"
+      device_class: temperature
+      state_class: measurement
+      accuracy_decimals: 1
+    humidity:
+      id: humidity
+      unit_of_measurement: "%"
+      device_class: humidity
+      state_class: measurement
+
+epaper_dither:
+  id: ditherer
+  algorithm: jarvis
+  diffusion: 0.8
+
+display:
+  - platform: waveshare_epaper
+    id: epaper
+    model: 7.30in-f
+    cs_pin: GPIO9
+    dc_pin: GPIO8
+    busy_pin:
+      number: GPIO13
+      inverted: true
+      mode:
+        input: true
+        pullup: true
+    reset_pin:
+      number: GPIO12
+    rotation: 180°
+    lambda: |
+      id(ditherer).dither_and_draw(it, *id(display_image), 800, 480);
+    update_interval: never
