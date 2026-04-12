@@ -20,21 +20,21 @@
   },
   "state": {
     "weather": {
-      "clear-night": "Clear night",
-      "cloudy": "Cloudy",
-      "exceptional": "Exceptional",
-      "fog": "Fog",
-      "hail": "Hail",
-      "lightning": "Lightning",
-      "lightning-rainy": "Lightning and rain",
-      "partlycloudy": "Partly cloudy",
-      "pouring": "Pouring",
-      "rainy": "Rainy",
-      "snowy": "Snowy",
-      "snowy-rainy": "Snow and rain",
-      "sunny": "Sunny",
-      "windy": "Windy",
-      "windy-variant": "Windy"
+      "clear-night": "The sky is clear during the night",
+      "cloudy": "There are many clouds in the sky",
+      "exceptional": "Exceptional weather conditions are occurring",
+      "fog": "There is a thick mist or fog reducing visibility",
+      "hail": "Hailstones are falling",
+      "lightning": "Lightning/thunderstorms are occurring",
+      "lightning-rainy": "Lightning/thunderstorm is occurring along with rain",
+      "partlycloudy": "The sky is partially covered with clouds",
+      "pouring": "It is raining heavily",
+      "rainy": "It is raining",
+      "snowy": "It is snowing",
+      "snowy-rainy": "It is snowing and raining at the same time",
+      "sunny": "The sky is clear and the sun is shining",
+      "windy": "It is windy",
+      "windy-variant": "It is windy and cloudy"
     }
   }
 }

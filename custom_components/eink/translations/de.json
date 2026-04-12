@@ -20,21 +20,21 @@
   },
   "state": {
     "weather": {
-      "clear-night": "Klare Nacht",
-      "cloudy": "Bewölkt",
-      "exceptional": "Außergewöhnlich",
-      "fog": "Nebel",
-      "hail": "Hagel",
+      "clear-night": "Der Himmel ist nachts klar",
+      "cloudy": "Viele Wolken am Himmel",
+      "exceptional": "Außergewöhnliche Wetterbedingungen",
+      "fog": "Dichter Nebel mit schlechter Sicht",
+      "hail": "Hagelkörner fallen",
       "lightning": "Gewitter",
       "lightning-rainy": "Gewitter mit Regen",
-      "partlycloudy": "Teilweise bewölkt",
-      "pouring": "Starkregen",
-      "rainy": "Regnerisch",
-      "snowy": "Schnee",
-      "snowy-rainy": "Schneeregen",
-      "sunny": "Sonnig",
-      "windy": "Windig",
-      "windy-variant": "Windig"
+      "partlycloudy": "Der Himmel ist teilweise bewölkt",
+      "pouring": "Es regnet stark",
+      "rainy": "Es regnet",
+      "snowy": "Es schneit",
+      "snowy-rainy": "Es schneit und regnet gleichzeitig",
+      "sunny": "Der Himmel ist klar und die Sonne scheint",
+      "windy": "Es ist windig",
+      "windy-variant": "Es ist windig und bewölkt"
     }
   }
 }
