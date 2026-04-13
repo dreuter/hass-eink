@@ -1,7 +1,9 @@
 """HTTP view — serves PNG to ESPHome devices."""
 from __future__ import annotations
 
+import hashlib
 import logging
+from datetime import datetime, timezone
 from http import HTTPStatus
 
 from aiohttp import web
@@ -44,8 +46,18 @@ class EinkView(HomeAssistantView):
             _LOGGER.exception("Failed to render PNG for token %s", token)
             return web.Response(status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
+        etag = f'"{hashlib.md5(png).hexdigest()}"'
+        last_modified = datetime.now(timezone.utc).strftime("%a, %d %b %Y %H:%M:%S GMT")
+
+        if request.headers.get("If-None-Match") == etag:
+            return web.Response(status=HTTPStatus.NOT_MODIFIED)
+
         return web.Response(
             body=png,
             content_type="image/png",
-            headers={"Cache-Control": "no-store"},
+            headers={
+                "Cache-Control": "no-cache",
+                "ETag": etag,
+                "Last-Modified": last_modified,
+            },
         )
