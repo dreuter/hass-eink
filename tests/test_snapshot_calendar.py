@@ -1,12 +1,15 @@
 """Golden master tests for the calendar widget."""
 from __future__ import annotations
 
+from datetime import date
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from homeassistant.core import SupportsResponse
 
 from custom_components.eink.renderer import render_layout
+
+_TODAY = date.today().isoformat()
 
 
 def _coord():
@@ -20,10 +23,10 @@ def _coord():
 EVENTS = {
     "calendar.test": {
         "events": [
-            {"start": "2026-04-12T08:00:00+02:00", "end": "2026-04-12T09:00:00+02:00", "summary": "Morning standup"},
-            {"start": "2026-04-12T12:00:00+02:00", "end": "2026-04-12T13:00:00+02:00", "summary": "Lunch"},
-            {"start": "2026-04-12T15:00:00+02:00", "end": "2026-04-12T16:30:00+02:00", "summary": "Long meeting"},
-            {"start": "2026-04-12", "summary": "All day event"},
+            {"start": f"{_TODAY}T08:00:00+02:00", "end": f"{_TODAY}T09:00:00+02:00", "summary": "Morning standup"},
+            {"start": f"{_TODAY}T12:00:00+02:00", "end": f"{_TODAY}T13:00:00+02:00", "summary": "Lunch"},
+            {"start": f"{_TODAY}T15:00:00+02:00", "end": f"{_TODAY}T16:30:00+02:00", "summary": "Long meeting"},
+            {"start": _TODAY, "summary": "All day event"},
         ]
     }
 }
@@ -31,25 +34,25 @@ EVENTS = {
 EVENTS_MULTI = {
     "calendar.work": {
         "events": [
-            {"start": "2026-04-12T09:00:00+02:00", "end": "2026-04-12T10:00:00+02:00", "summary": "Standup"},
-            {"start": "2026-04-12T14:00:00+02:00", "end": "2026-04-12T15:00:00+02:00", "summary": "Review"},
+            {"start": f"{_TODAY}T09:00:00+02:00", "end": f"{_TODAY}T10:00:00+02:00", "summary": "Standup"},
+            {"start": f"{_TODAY}T14:00:00+02:00", "end": f"{_TODAY}T15:00:00+02:00", "summary": "Review"},
         ]
     },
     "calendar.family": {
         "events": [
-            {"start": "2026-04-12T09:30:00+02:00", "end": "2026-04-12T10:30:00+02:00", "summary": "Doctor"},
-            {"start": "2026-04-12T17:00:00+02:00", "end": "2026-04-12T18:00:00+02:00", "summary": "Dinner"},
+            {"start": f"{_TODAY}T09:30:00+02:00", "end": f"{_TODAY}T10:30:00+02:00", "summary": "Doctor"},
+            {"start": f"{_TODAY}T17:00:00+02:00", "end": f"{_TODAY}T18:00:00+02:00", "summary": "Dinner"},
         ]
     },
     "calendar.sport": {
         "events": [
-            {"start": "2026-04-12T07:00:00+02:00", "end": "2026-04-12T08:00:00+02:00", "summary": "Run"},
+            {"start": f"{_TODAY}T07:00:00+02:00", "end": f"{_TODAY}T08:00:00+02:00", "summary": "Run"},
         ]
     },
 }
 
 FORECAST = [
-    {"datetime": f"2026-04-12T{h:02d}:00:00+02:00", "condition": c, "temperature": 15 + h * 0.5, "precipitation": p}
+    {"datetime": f"{_TODAY}T{h:02d}:00:00+02:00", "condition": c, "temperature": 15 + h * 0.5, "precipitation": p}
     for h, c, p in [
         (8, "sunny", 0), (9, "partlycloudy", 0), (10, "cloudy", 0.2),
         (11, "rainy", 1.5), (12, "pouring", 3.0), (13, "cloudy", 0.5),

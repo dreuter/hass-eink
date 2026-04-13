@@ -141,7 +141,7 @@ async def render_calendar(
     tl_h = y1 - tl_y0
     hour_range = end_hour - start_hour
     label_w = 28
-    forecast_w = 52 if forecast else 0
+    forecast_w = 72 if forecast else 4
     event_x0 = x0 + label_w + forecast_w + 2
     event_x1 = x1 - 2
 
@@ -159,7 +159,8 @@ async def render_calendar(
                 condition = f.get("condition", "")
                 temp = f.get("temperature")
                 precip = f.get("precipitation") or 0
-                icon_size = font_sm.size + 2
+                font_fc = _fonts(max(8, font_sm.size // 2))[0]
+                icon_size = font_fc.size * 2
                 col_x = x0 + label_w
                 fy = y + 1
                 icon = await hass.async_add_executor_job(_load_icon, condition, icon_size)
@@ -173,10 +174,12 @@ async def render_calendar(
                     else:
                         img.paste(icon, (col_x + 2, fy), icon)
                 tx = col_x + icon_size + 4
-                if temp is not None:
-                    draw.text((tx, fy), f"{temp:.0f}°", font=font_sm, fill=BLACK)
-                if precip > 0:
-                    draw.text((tx, fy + font_sm.size + 1), f"{precip:.1f}mm", font=font_sm, fill=BLUE)
+                if temp is not None and precip > 0:
+                    draw.text((tx, fy), f"{temp:.0f}°", font=font_fc, fill=BLACK)
+                    draw.text((tx, fy + font_fc.size + 1), f"{precip:.1f}mm", font=font_fc, fill=BLUE)
+                elif temp is not None:
+                    font_fc2 = _fonts(max(8, font_sm.size // 1))[0]
+                    draw.text((tx, fy), f"{temp:.0f}°", font=font_fc2, fill=BLACK)
 
     # Build list of (sh, eh, event, color) and assign columns for overlaps
     slots = []
@@ -210,6 +213,6 @@ async def render_calendar(
         text_color = BLACK if color in (WHITE, YELLOW) else WHITE
         draw.text(
             (ex0 + 2, ey0 + 1),
-            f"{ev_start.strftime('%H:%M')} {event.get('summary', '')}",
+            event.get("summary", ""),
             font=font_sm, fill=text_color,
         )

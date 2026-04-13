@@ -1,10 +1,12 @@
 """Golden master tests for full multi-widget layouts."""
 from __future__ import annotations
 
+from datetime import date
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
 FIXTURE_IMAGE = Path(__file__).parent / "fixtures" / "atlas_mountains.jpg"
+_TODAY = date.today().isoformat()
 
 import pytest
 
@@ -21,9 +23,9 @@ def _coord():
 EVENTS = {
     "calendar.test": {
         "events": [
-            {"start": "2026-04-12T09:00:00+02:00", "end": "2026-04-12T10:00:00+02:00", "summary": "Standup"},
-            {"start": "2026-04-12T14:00:00+02:00", "end": "2026-04-12T15:00:00+02:00", "summary": "Review"},
-            {"start": "2026-04-12", "summary": "Holiday"},
+            {"start": f"{_TODAY}T09:00:00+02:00", "end": f"{_TODAY}T10:00:00+02:00", "summary": "Standup"},
+            {"start": f"{_TODAY}T14:00:00+02:00", "end": f"{_TODAY}T15:00:00+02:00", "summary": "Review"},
+            {"start": _TODAY, "summary": "Holiday"},
         ]
     }
 }

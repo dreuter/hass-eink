@@ -21,7 +21,7 @@ CONDITIONS = ["partlycloudy", "windy"]
 SIZES = [(1, 1), (3, 2), (3, 4)]
 
 DAILY_FORECAST = {"weather.home": {"forecast": [{
-    "datetime": "2026-04-12T00:00:00+02:00",
+    "datetime": "2026-04-13T00:00:00+02:00",
     "condition": "partlycloudy",
     "temperature": 22.0,
     "templow": 8.0,
