@@ -30,8 +30,8 @@ _COLOR_MAP = {
 _DEFAULT_COLORS = [BLACK, BLUE, GREEN, RED, YELLOW]
 
 
-def _load_icon(condition: str, size: int) -> Image.Image | None:
-    path = _ICONS_DIR / f"{condition}.png"
+def _load_icon(condition: str, size: int, icon_set: str = "weather-icons") -> Image.Image | None:
+    path = _ICONS_DIR / icon_set / f"{condition}.png"
     if not path.exists():
         return None
     return Image.open(path).convert("RGBA").resize((size, size), Image.LANCZOS)
@@ -92,6 +92,7 @@ async def render_calendar(
     start_hour = int(cfg.get("start_hour") or 0)
     end_hour = int(cfg.get("end_hour") or 24)
     forecast_entity = cfg.get("forecast_entity")
+    icon_set = cfg.get("icon_set", "weather-icons")
     x0, y0, x1, y1 = bbox
     w, h = x1 - x0, y1 - y0
 
@@ -163,7 +164,7 @@ async def render_calendar(
                 icon_size = font_fc.size * 2
                 col_x = x0 + label_w
                 fy = y + 1
-                icon = await hass.async_add_executor_job(_load_icon, condition, icon_size)
+                icon = await hass.async_add_executor_job(_load_icon, condition, icon_size, icon_set)
                 if icon:
                     if dither != "none":
                         from ..dither import dither_image

@@ -17,8 +17,8 @@ def _find_font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont:
     return ImageFont.truetype(str(_FONTS_DIR / name), max(8, size))
 
 
-def _load_icon(condition: str, size: int) -> Image.Image | None:
-    path = _ICONS_DIR / f"{condition}.png"
+def _load_icon(condition: str, size: int, icon_set: str = "weather-icons") -> Image.Image | None:
+    path = _ICONS_DIR / icon_set / f"{condition}.png"
     if not path.exists():
         return None
     return Image.open(path).convert("RGBA").resize((size, size), Image.LANCZOS)
@@ -45,6 +45,7 @@ async def render_weather(
     dither: str = "none",
 ) -> None:
     entity_id = cfg.get("entity_id", "weather.forecast_home")
+    icon_set = cfg.get("icon_set", "weather-icons")
     state = hass.states.get(entity_id)
     x0, y0, x1, y1 = bbox
     w, h = x1 - x0, y1 - y0
@@ -85,7 +86,7 @@ async def render_weather(
         icon_size = min(w - 16, h - temp_h - hl_h - 12)
     else:
         icon_size = min(int(w * 0.5), int(h * 0.35))
-    icon = await hass.async_add_executor_job(_load_icon, condition, icon_size)
+    icon = await hass.async_add_executor_job(_load_icon, condition, icon_size, icon_set)
     ix = x0 + (w - icon_size) // 2
     iy = y0 + 4
     if icon:

@@ -7,10 +7,16 @@ const WIDGET_TYPES = ["weather", "calendar", "image", "test"];
 const PALETTE_COLORS = ["black", "white", "yellow", "red", "blue", "green"];
 const PALETTE_HEX = { black: "#000", white: "#fff", yellow: "#ff0", red: "#f00", blue: "#00f", green: "#0f0" };
 
+const ICON_SETS = ["weather-icons", "cat"];
+
 const WIDGET_FIELDS = {
-  weather:  [{ key: "entity_id", label: "Weather entity", placeholder: "weather.forecast_home", domain: "weather" }],
+  weather:  [
+    { key: "entity_id", label: "Weather entity", placeholder: "weather.forecast_home", domain: "weather" },
+    { key: "icon_set",  label: "Icon set",        placeholder: "", options: ICON_SETS },
+  ],
   calendar: [
     { key: "forecast_entity", label: "Weather forecast (opt)", placeholder: "", domain: "weather" },
+    { key: "icon_set",        label: "Icon set (forecast)",    placeholder: "", options: ICON_SETS },
     { key: "start_hour",      label: "Start hour (0–24)",      placeholder: "0" },
     { key: "end_hour",        label: "End hour (0–24)",        placeholder: "24" },
   ],
@@ -406,6 +412,16 @@ class EinkPanel extends HTMLElement {
             ? Object.keys(this._hass.states).filter(id => id.startsWith(f.domain + "."))
             : [];
           const currentVal = w.config?.[f.key] || "";
+          if (f.options) {
+            const selected = currentVal || f.options[0];
+            return `
+              <div class="field">
+                <label>${f.label}</label>
+                <select id="cfg-${f.key}">
+                  ${f.options.map(o => `<option value="${o}" ${o === selected ? "selected" : ""}>${o}</option>`).join("")}
+                </select>
+              </div>`;
+          }
           if (entities.length) {
             // Auto-default to first entity if nothing set — but only for required fields
             const isOptional = f.placeholder === "";
