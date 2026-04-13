@@ -50,7 +50,13 @@ online_image:
     request_headers:
       X-ESPHome-Device: ${name}
     on_download_finished:
-      - component.update: epaper
+      - if:
+          condition:
+            lambda: 'return !cached;'
+          then:
+            - component.update: epaper
+          else:
+            - logger.log: "Image unchanged, skipping display refresh"
 
 time:
   - platform: homeassistant
