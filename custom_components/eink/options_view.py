@@ -22,9 +22,10 @@ class EinkOptionsView(HomeAssistantView):
         entry = self.hass.config_entries.async_get_entry(entry_id)
         if entry is None or entry.domain != DOMAIN:
             return web.Response(status=HTTPStatus.NOT_FOUND)
+        coordinator = self.hass.data.get(DOMAIN, {}).get(entry_id)
         return self.json({
             "token": entry.data.get("token", ""),
             "dither": entry.options.get(CONF_DITHER, DITHER_DEFAULT),
-            "esphome_device": coordinator.esphome_device,
+            "esphome_device": coordinator.esphome_device if coordinator else None,
             **entry.options,
         })
