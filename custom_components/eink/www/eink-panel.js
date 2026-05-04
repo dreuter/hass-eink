@@ -7,7 +7,7 @@ const WIDGET_TYPES = ["weather", "calendar", "image", "test"];
 const PALETTE_COLORS = ["black", "white", "yellow", "red", "blue", "green"];
 const PALETTE_HEX = { black: "#000", white: "#fff", yellow: "#ff0", red: "#f00", blue: "#00f", green: "#0f0" };
 
-const ICON_SETS = ["weather-icons", "cat"];
+const ICON_SETS = ["weather-icons", "erikflowers", "cat"];
 
 const WIDGET_FIELDS = {
   weather:  [
