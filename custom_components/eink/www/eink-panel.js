@@ -19,6 +19,7 @@ const WIDGET_FIELDS = {
     { key: "icon_set",        label: "Icon set (forecast)",    placeholder: "", options: ICON_SETS },
     { key: "start_hour",      label: "Start hour (0–24)",      placeholder: "0" },
     { key: "end_hour",        label: "End hour (0–24)",        placeholder: "24" },
+    { key: "day_rollover",    label: "Day rollover time",      placeholder: "21:30" },
   ],
   image: [],
 };

@@ -107,6 +107,7 @@ Each cell is 200×160 px. Widgets span multiple cells via `row_span` / `col_span
 | `forecast_entity` | Weather entity for hourly forecast column (optional) | — |
 | `start_hour` | First hour shown | `0` |
 | `end_hour` | Last hour shown | `24` |
+| `day_rollover` | Time (HH:MM) when the calendar switches to showing the next day | `21:30` |
 
 #### `image`
 

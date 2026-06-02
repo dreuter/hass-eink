@@ -125,3 +125,41 @@ async def test_calendar_multi_snapshot(hass, assert_png_snapshot):
                 }}]
     png = await render_layout(hass, widgets, _coord())
     assert_png_snapshot(png, "calendar_multi_3x2")
+
+
+async def test_calendar_with_day_rollover(hass, assert_png_snapshot):
+    """Test calendar with day_rollover showing next day's events."""
+    from datetime import datetime, timedelta
+    from unittest.mock import patch
+
+    tomorrow = (date.today() + timedelta(days=1)).isoformat()
+    tomorrow_events = {
+        "calendar.test": {
+            "events": [
+                {"start": f"{tomorrow}T08:00:00+02:00", "end": f"{tomorrow}T09:00:00+02:00", "summary": "Morning standup"},
+                {"start": f"{tomorrow}T12:00:00+02:00", "end": f"{tomorrow}T13:00:00+02:00", "summary": "Lunch"},
+                {"start": tomorrow, "summary": "All day tomorrow"},
+            ]
+        }
+    }
+
+    hass.services.async_register(
+        "calendar", "get_events", AsyncMock(return_value=tomorrow_events),
+        supports_response=SupportsResponse.ONLY,
+    )
+
+    # Mock datetime to be after rollover time (22:00 > 21:30)
+    mock_now = datetime.now().astimezone().replace(hour=22, minute=0, second=0, microsecond=0)
+    with patch('custom_components.eink.widgets.calendar.datetime') as mock_datetime:
+        mock_datetime.now().astimezone.return_value = mock_now
+        mock_datetime.fromisoformat = datetime.fromisoformat
+
+        widgets = [{"type": "calendar", "row": 0, "col": 0,
+                    "row_span": 3, "col_span": 2,
+                    "config": {
+                        "entity_id": "calendar.test",
+                        "start_hour": 7, "end_hour": 18,
+                        "day_rollover": "21:30"
+                    }}]
+        png = await render_layout(hass, widgets, _coord())
+        assert_png_snapshot(png, "calendar_rollover_3x2")

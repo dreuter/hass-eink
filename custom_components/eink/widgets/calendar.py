@@ -92,6 +92,7 @@ async def render_calendar(
     end_hour = int(cfg.get("end_hour") or 24)
     forecast_entity = cfg.get("forecast_entity")
     icon_set = cfg.get("icon_set", "weather-icons")
+    day_rollover = cfg.get("day_rollover") or "21:30"
     x0, y0, x1, y1 = bbox
     w, h = x1 - x0, y1 - y0
 
@@ -113,14 +114,26 @@ async def render_calendar(
         calendars.append((cal["entity_id"], color))
 
     local_now = datetime.now().astimezone()
-    day_start = local_now.replace(hour=0, minute=0, second=0, microsecond=0)
+
+    # Parse day_rollover time and determine which day to display
+    rollover_hour, rollover_minute = map(int, day_rollover.split(":"))
+    rollover_time = local_now.replace(hour=rollover_hour, minute=rollover_minute, second=0, microsecond=0)
+
+    if local_now >= rollover_time:
+        # Show next day
+        day_start = (local_now + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+    else:
+        # Show today
+        day_start = local_now.replace(hour=0, minute=0, second=0, microsecond=0)
+
     day_end = day_start + timedelta(days=1)
 
     # Build forecast datetime range
     forecast_start = day_start.replace(hour=start_hour, minute=0, second=0, microsecond=0)
-    forecast_end = day_start.replace(hour=end_hour, minute=0, second=0, microsecond=0)
     if end_hour == 24:
         forecast_end = day_end
+    else:
+        forecast_end = day_start.replace(hour=end_hour, minute=0, second=0, microsecond=0)
 
     # Fetch all events
     all_events: list[tuple[dict, tuple]] = []
@@ -137,7 +150,7 @@ async def render_calendar(
     all_day = [(e, c) for e, c in all_events if "T" not in e.get("start", "")]
     timed   = [(e, c) for e, c in all_events if "T" in e.get("start", "")]
 
-    draw.text((x0, y0 + 2), local_now.strftime('%A %d.%m.'), font=font_sm, fill=BLACK)
+    draw.text((x0, y0 + 2), day_start.strftime('%A %d.%m.'), font=font_sm, fill=BLACK)
 
     banner_h = (font_sm.size + 4) * (len(all_day) + 1) + 4
     if all_day:
