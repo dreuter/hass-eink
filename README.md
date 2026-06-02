@@ -202,14 +202,22 @@ Open `http://localhost:8123`, complete onboarding, then add **E-Ink Display** vi
 
 ### Running tests
 
+First, install the project and its test dependencies:
+
 ```bash
-pytest tests/ -v
+uv sync --all-extras
+```
+
+Then run the tests:
+
+```bash
+uv run pytest tests/ -v
 ```
 
 Regenerate golden master snapshots after intentional design changes:
 
 ```bash
-UPDATE_SNAPSHOTS=1 pytest tests/test_snapshot_*.py
+UPDATE_SNAPSHOTS=1 uv run pytest tests/test_snapshot_*.py
 ```
 
 ### Project structure
