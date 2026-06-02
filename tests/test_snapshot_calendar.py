@@ -42,6 +42,7 @@ EVENTS_MULTI = {
         "events": [
             {"start": f"{_TODAY}T09:30:00+02:00", "end": f"{_TODAY}T10:30:00+02:00", "summary": "Doctor"},
             {"start": f"{_TODAY}T17:00:00+02:00", "end": f"{_TODAY}T18:00:00+02:00", "summary": "Dinner"},
+            {"start": _TODAY, "summary": "All day event"},
         ]
     },
     "calendar.sport": {

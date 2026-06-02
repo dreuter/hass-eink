@@ -134,8 +134,8 @@ async def render_calendar(
 
     banner_h = (font_sm.size + 4) * len(all_day) if all_day else 0
     if all_day:
-        draw.rectangle((x0, y0, x1 - 1, y0 + banner_h), fill=BLACK)
         for i, (e, c) in enumerate(all_day):
+            draw.rectangle((x0, y0 + i * (font_sm.size + 4), x1 - 1, y0 + (font_sm.size + 4)), fill=c)
             draw.text((x0 + 4, y0 + i * (font_sm.size + 4) + 2), e.get("summary", ""), font=font_sm, fill=WHITE)
 
     tl_y0 = y0 + banner_h
