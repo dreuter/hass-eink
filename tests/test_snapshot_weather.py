@@ -35,6 +35,13 @@ DAILY_FORECAST = {"weather.home": {"forecast": [{
     "wind_speed": 14.0,
     "wind_gust_speed": 28.0,
     "wind_bearing": 225,
+}, {
+    "datetime": "2026-04-14T00:00:00+02:00",
+    "condition": "rainy",
+    "temperature": 18.0,
+    "templow": 12.0,
+    "precipitation": 5.5,
+    "precipitation_probability": 80,
 }]}}
 
 from tests.conftest import assert_no_bleed
