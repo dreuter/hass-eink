@@ -132,11 +132,13 @@ async def render_calendar(
     all_day = [(e, c) for e, c in all_events if "T" not in e.get("start", "")]
     timed   = [(e, c) for e, c in all_events if "T" in e.get("start", "")]
 
-    banner_h = (font_sm.size + 4) * len(all_day) if all_day else 0
+    draw.text((x0, y0 + 2), local_now.strftime('%A %d.%m.'), font=font_sm, fill=BLACK)
+
+    banner_h = (font_sm.size + 4) * (len(all_day) + 1) + 4
     if all_day:
         for i, (e, c) in enumerate(all_day):
-            draw.rectangle((x0, y0 + i * (font_sm.size + 4), x1 - 1, y0 + (font_sm.size + 4)), fill=c)
-            draw.text((x0 + 4, y0 + i * (font_sm.size + 4) + 2), e.get("summary", ""), font=font_sm, fill=WHITE)
+            draw.rectangle((x0, 4 + y0 + (i + 1) * (font_sm.size + 4), x1 - 1, 4 + y0 + (i + 2) * (font_sm.size + 4) -1), fill=c)
+            draw.text((x0 + 4, 4 + y0 + (i + 1) * (font_sm.size + 4) + 2), e.get("summary", ""), font=font_sm, fill=WHITE)
 
     tl_y0 = y0 + banner_h
     tl_h = y1 - tl_y0
