@@ -58,7 +58,7 @@ async def _get_events(hass: HomeAssistant, entity_id: str, day_start: datetime, 
         return []
 
 
-async def _get_forecast(hass: HomeAssistant, entity_id: str, start_hour: int, end_hour: int) -> dict[int, dict]:
+async def _get_forecast(hass: HomeAssistant, entity_id: str, start_datetime: datetime, end_datetime: datetime) -> dict[int, dict]:
     try:
         result = await hass.services.async_call(
             "weather", "get_forecasts",
@@ -69,12 +69,11 @@ async def _get_forecast(hass: HomeAssistant, entity_id: str, start_hour: int, en
     except Exception:
         return {}
 
-    today = datetime.now().astimezone().date()
     by_hour = {}
     for f in forecasts:
         try:
             dt = datetime.fromisoformat(f["datetime"]).astimezone()
-            if dt.date() == today and start_hour <= dt.hour < end_hour:
+            if start_datetime <= dt < end_datetime:
                 by_hour[dt.hour] = f
         except (KeyError, ValueError):
             pass
@@ -117,6 +116,12 @@ async def render_calendar(
     day_start = local_now.replace(hour=0, minute=0, second=0, microsecond=0)
     day_end = day_start + timedelta(days=1)
 
+    # Build forecast datetime range
+    forecast_start = day_start.replace(hour=start_hour, minute=0, second=0, microsecond=0)
+    forecast_end = day_start.replace(hour=end_hour, minute=0, second=0, microsecond=0)
+    if end_hour == 24:
+        forecast_end = day_end
+
     # Fetch all events
     all_events: list[tuple[dict, tuple]] = []
     for entity_id, color in calendars:
@@ -127,7 +132,7 @@ async def render_calendar(
         draw.text((x0 + 4, y0 + 4), "Calendar error", fill=RED, font=font_sm)
         return
 
-    forecast = await _get_forecast(hass, forecast_entity, start_hour, end_hour) if forecast_entity else {}
+    forecast = await _get_forecast(hass, forecast_entity, forecast_start, forecast_end) if forecast_entity else {}
 
     all_day = [(e, c) for e, c in all_events if "T" not in e.get("start", "")]
     timed   = [(e, c) for e, c in all_events if "T" in e.get("start", "")]
